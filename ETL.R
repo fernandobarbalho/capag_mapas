@@ -1,5 +1,6 @@
 library(readxl)
 library(geobr)
+library(rio)
 
 
 url<- "https://www.tesourotransparente.gov.br/ckan/dataset/9ff93162-409e-48b5-91d9-cf645a47fdfc/resource/86636c19-b38a-4b9e-8fff-30fc4208dd04/download/CAPAG-Municipios---Ano-Base-2022.xlsx"
@@ -61,3 +62,10 @@ gera_tabela_ibge_municipios<- function(){
 ibge2022<-
   gera_tabela_ibge_municipios()
 
+rio::export(mapa_municipios, "mapa_municipios.RDS")
+rio::export(sedes_municipios,"sedes_municipios.RDS")
+rio::export(estados, "estados.RDS")
+rio::export(brasil,"brasil.rds")
+
+rio::export(ibge2022,"ibge2022.RDS")
+rio::export(dados_capag_2022,"dados_capag_2022.RDS")
