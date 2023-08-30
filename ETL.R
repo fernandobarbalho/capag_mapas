@@ -60,3 +60,4 @@ gera_tabela_ibge_municipios<- function(){
 #Exemplo de uso
 ibge2022<-
   gera_tabela_ibge_municipios()
+
