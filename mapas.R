@@ -22,12 +22,12 @@ gera_mapa_categoria<- function(categoria, point_color="red", titulo){
     )
 
     sedes_municipios %>%
-    inner_join(
-      dados_capag_2022 %>%
-        rename(code_muni = cod_ibge)
-    ) %>%
+    # inner_join(
+    #   dados_capag_2022 %>%
+    #     rename(code_muni = cod_ibge)
+    # ) %>%
     ggplot()+
-    geom_sf( pch=21, fill="#808080",  color="#808080", size= 0.5) +
+    #geom_sf( pch=21, fill="#808080",  color="#808080", size= 0.5) +
     geom_sf(data = sedes,pch=21,  fill=point_color, color = point_color, size= 0.5 )+
     geom_sf(data= estados, fill=NA, color="white") +
     theme_light() +
@@ -101,33 +101,6 @@ sedes_municipios %>%
 
 
 
-### Mapa com sedes dos municípios com facet
-sedes_municipios %>%
-  inner_join(
-    dados_capag_2022 %>%
-      #mutate(capag_2022 = ifelse(capag_2022=="n.d.",NA,capag_2022) ) %>%
-      rename(code_muni = cod_ibge)
-  ) %>%
-  ggplot()+
-  geom_sf( aes(fill= capag_2022), pch=21,  color="black", size= 0.5) +
-  geom_sf(data= estados, fill=NA, color="#808080") +
-  #scale_fill_discrete_qualitative(palette= "Dark 2")+
-  scale_fill_discrete_sequential(palette= "Heat 2", rev= FALSE) +
-
-  theme_light() +
-  theme(
-    #text = element_text(size=20),
-    panel.background = element_rect(fill = "black"),
-    panel.grid = element_blank(),
-    axis.title.x = element_blank(),
-    axis.title.y = element_blank(),
-    strip.background = element_rect(fill = "#505050"),
-    strip.text = element_text(color = "white"),
-    axis.text = element_blank(),
-    legend.key = element_rect(fill = "black")
-
-  )+
-  facet_wrap(capag_2022~.)
 
 
 ### Gera obejtos Mapas com sedes dos municípios com destaque para cada categoria separadamente
@@ -151,3 +124,33 @@ mapa_nd<-
 
 
 (mapa_a+mapa_b)/(mapa_c+mapa_nd)
+
+
+### Mapa com sedes dos municípios com facet
+sedes_municipios %>%
+  inner_join(
+    dados_capag_2022 %>%
+      filter(capag_2022 != "D") %>%
+      #mutate(capag_2022 = ifelse(capag_2022=="n.d.",NA,capag_2022) ) %>%
+      rename(code_muni = cod_ibge)
+  ) %>%
+  ggplot()+
+  geom_sf( fill = "#ff6600", pch=21,  color="#ff6600", size= 0.1) +
+  geom_sf(data= estados, fill=NA, color="white") +
+  #scale_fill_discrete_qualitative(palette= "Dark 2")+
+  scale_fill_discrete_sequential(palette= "Heat 2", rev= FALSE) +
+
+  theme_light() +
+  theme(
+    #text = element_text(size=20),
+    panel.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    strip.background = element_rect(fill = "#505050"),
+    strip.text = element_text(color = "white"),
+    axis.text = element_blank(),
+    legend.key = element_rect(fill = "black")
+
+  )+
+  facet_wrap(capag_2022~.)
