@@ -40,6 +40,7 @@ sedes_municipios %>%
       rename(code_muni = cod_ibge)
   ) %>%
   ggplot()+
-  geom_sf(aes(color= capag_2022)) +
-  geom_sf(data= estados, fill=NA)
+  geom_sf(aes(color= capag_2022), size= 1) +
+  geom_sf(data= estados, fill=NA) +
+  theme_void()
 
