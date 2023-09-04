@@ -11,13 +11,16 @@ ibge2022<- rio::import("ibge2022.RDS")
 dados_capag_2022 <- rio::import("dados_capag_2022.RDS")
 
 
+source("analise_exploratoria.R")
+
+
 gera_mapa_categoria<- function(categoria, point_color="red", titulo){
 
   sedes<-
     sedes_municipios %>%
     inner_join(
       dados_capag_2022 %>%
-        filter(capag_2022== categoria) %>%
+        filter(capag_oficial== categoria) %>%
         rename(code_muni = cod_ibge)
     )
 
@@ -49,27 +52,74 @@ gera_mapa_categoria<- function(categoria, point_color="red", titulo){
 }
 
 
+gera_mapa_nota_indicador<- function(.data,a_indicador, mid_point, com_facet=TRUE, a_size=1){
+
+  indicador<- str_c("indicador_",a_indicador)
+
+
+  graph<-
+  sedes_municipios %>%
+    inner_join(
+      .data %>%
+        rename(code_muni = cod_ibge)
+    ) %>%
+    ggplot()+
+    geom_sf( aes(fill = !!sym(indicador)), pch=21,  color="black", size= a_size) +
+    geom_sf(data= estados, fill=NA, color="white") +
+    scale_fill_continuous_divergingx(palette = "Zissou 1", mid=mid_point) +
+    #scale_fill_continuous_sequential(palette= "Heat 2") +
+    theme_light() +
+    theme(
+      #text = element_text(size=20),
+      panel.background = element_rect(fill = "black"),
+      panel.grid = element_blank(),
+      axis.title.x = element_blank(),
+      axis.title.y = element_blank(),
+      strip.background = element_rect(fill = "#505050"),
+      strip.text = element_text(color = "white"),
+      axis.text = element_blank(),
+      legend.key = element_rect(fill = "black")
+
+    )
+
+  if (com_facet){
+
+    graph<-
+    graph+
+    facet_wrap(capag_oficial~.)
+
+  }
+
+  graph
+
+}
+
+
+
+
+
+
 ### Mapa com os territórios dos municípios exibindo as fronteiras
 
 mapa_municipios %>%
   inner_join(
     dados_capag_2022 %>%
-      mutate(capag_2022 = ifelse(capag_2022=="n.d.",NA,capag_2022) ) %>%
+      mutate(capag_oficial = ifelse(capag_oficial=="n.d.",NA,capag_oficial) ) %>%
       rename(code_muni = cod_ibge)
   ) %>%
   ggplot()+
-  geom_sf(aes(fill= capag_2022),color=NA)
+  geom_sf(aes(fill= capag_oficial),color=NA)
 
 
 ### Mapa com os territórios dos municípios sem exibir as fronteiras
 mapa_municipios %>%
   inner_join(
     dados_capag_2022 %>%
-      mutate(capag_2022 = ifelse(capag_2022=="n.d.",NA,capag_2022) ) %>%
+      mutate(capag_oficial = ifelse(capag_oficial=="n.d.",NA,capag_oficial) ) %>%
       rename(code_muni = cod_ibge)
   ) %>%
   ggplot()+
-  geom_sf(aes(fill= capag_2022))
+  geom_sf(aes(fill= capag_oficial))
 
 
 ### Mapa com sedes dos municípios
@@ -80,7 +130,7 @@ sedes_municipios %>%
       rename(code_muni = cod_ibge)
   ) %>%
   ggplot()+
-  geom_sf( aes(fill= capag_2022), pch=21,  color="black", size= 0.9) +
+  geom_sf( aes(fill= capag_oficial), pch=21,  color="black", size= 0.9) +
   geom_sf(data= estados, fill=NA, color="#808080") +
   #scale_fill_discrete_qualitative(palette= "Dark 2")+
   scale_fill_discrete_sequential(palette= "Heat 2", rev= FALSE) +
@@ -130,7 +180,7 @@ mapa_nd<-
 sedes_municipios %>%
   inner_join(
     dados_capag_2022 %>%
-      filter(capag_2022 != "D") %>%
+      #filter(capag_oficial != "D") %>%
       #mutate(capag_2022 = ifelse(capag_2022=="n.d.",NA,capag_2022) ) %>%
       rename(code_muni = cod_ibge)
   ) %>%
@@ -153,4 +203,51 @@ sedes_municipios %>%
     legend.key = element_rect(fill = "black")
 
   )+
-  facet_wrap(capag_2022~.)
+  facet_wrap(capag_oficial~.)
+
+
+sedes_municipios %>%
+  inner_join(
+    dados_capag_2022 %>%
+      filter_outliers("indicador_1") %>%
+      rename(code_muni = cod_ibge)
+  ) %>%
+  ggplot()+
+  geom_sf( aes(fill = indicador_1), pch=21,  color="#ff6600", size= 0.1) +
+  geom_sf(data= estados, fill=NA, color="white") +
+  #scale_fill_discrete_qualitative(palette= "Dark 2")+
+  scale_fill_discrete_sequential(palette= "Heat 2", rev= FALSE) +
+  theme_light() +
+  theme(
+    #text = element_text(size=20),
+    panel.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    strip.background = element_rect(fill = "#505050"),
+    strip.text = element_text(color = "white"),
+    axis.text = element_blank(),
+    legend.key = element_rect(fill = "black")
+
+  )+
+  facet_wrap(capag_oficial~.)
+
+
+dados_capag_2022 %>%
+  filter_outliers("indicador_1") %>%
+  gera_mapa_nota_indicador("1",1)
+
+dados_capag_2022 %>%
+  filter_outliers("indicador_2") %>%
+  gera_mapa_nota_indicador("2",0.95, com_facet = FALSE, a_size= 1.2)
+
+dados_capag_2022 %>%
+  filter_outliers("indicador_2") %>%
+  gera_mapa_nota_indicador("2",0.95,  a_size= 1.8)
+
+
+
+dados_capag_2022 %>%
+  filter_outliers("indicador_3") %>%
+  gera_mapa_nota_indicador("3",1,  a_size= 1.8)
+

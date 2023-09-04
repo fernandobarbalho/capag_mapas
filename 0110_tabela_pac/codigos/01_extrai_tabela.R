@@ -59,3 +59,6 @@ df%>%
 #                            sheet = aba_nome)
 
 
+df%>%
+  summarise(.by = EIXO,
+            n())

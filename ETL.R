@@ -3,13 +3,34 @@ library(geobr)
 library(rio)
 
 
-url<- "https://www.tesourotransparente.gov.br/ckan/dataset/9ff93162-409e-48b5-91d9-cf645a47fdfc/resource/86636c19-b38a-4b9e-8fff-30fc4208dd04/download/CAPAG-Municipios---Ano-Base-2022.xlsx"
+
+url_original<- "https://www.tesourotransparente.gov.br/ckan/dataset/9ff93162-409e-48b5-91d9-cf645a47fdfc/resource/86636c19-b38a-4b9e-8fff-30fc4208dd04/download/CAPAG-Municipios---Ano-Base-2022.xlsx"
+
+download.file(url_original, destfile = "dados_capag_2022_original.xlsx", mode = "wb")
+
+dados_capag_2022_original <- read_excel("dados_capag_2022_original.xlsx")
+
+dados_capag_2022_original <- janitor::clean_names(dados_capag_2022_original)
+
+
+url<- "https://www.tesourotransparente.gov.br/ckan/dataset/9ff93162-409e-48b5-91d9-cf645a47fdfc/resource/6a218451-f1b4-4fce-ac2a-00a3675bf4eb/download/CAPAG-Oficial-Municipios-2023-02-23-corrigido.xlsx"
 
 download.file(url, destfile = "dados_capag_2022.xlsx", mode = "wb")
 
 dados_capag_2022 <- read_excel("dados_capag_2022.xlsx")
 
 dados_capag_2022 <- janitor::clean_names(dados_capag_2022)
+
+
+
+url<- "https://www.tesourotransparente.gov.br/ckan/dataset/9ff93162-409e-48b5-91d9-cf645a47fdfc/resource/31ed778a-9115-419c-b18e-c9131a978aef/download/CAPAG-Oficial-23.xlsx"
+
+download.file(url, destfile = "dados_capag_2022.xlsx", mode = "wb")
+
+dados_capag_2022 <- read_excel("dados_capag_2022.xlsx")
+
+dados_capag_2022 <- janitor::clean_names(dados_capag_2022)
+
 
 
 mapa_municipios <- geobr::read_municipality(simplified = FALSE)
