@@ -184,3 +184,65 @@ nota_indicador_2<-
   geom_boxplot(aes(x=nota_1, y = indicador_2))
 
 nota_final_2 + nota_indicador_2
+
+
+
+### Testes de chi quadrado
+
+teste_chi<-
+chisq.test(dados_capag_2022$uf, dados_capag_2022$capag_oficial, simulate.p.value = TRUE)
+
+
+residuo_teste<-
+as.tibble(teste_chi[["stdres"]])
+
+names(residuo_teste) <- c("uf","capag_oficial","n")
+
+
+residuo_teste %>%
+  filter(capag_oficial == "A") %>%
+  mutate(uf = reorder(uf, n)) %>%
+  ggplot(aes(x=n,y=uf))+
+  geom_col()
+
+
+residuo_teste %>%
+  filter(capag_oficial == "B") %>%
+  mutate(uf = reorder(uf, n)) %>%
+  ggplot(aes(x=n,y=uf))+
+  geom_col()
+
+residuo_teste %>%
+  filter(capag_oficial == "C") %>%
+  mutate(uf = reorder(uf, n)) %>%
+  ggplot(aes(x=n,y=uf))+
+  geom_col()
+
+
+residuo_teste %>%
+  filter(capag_oficial == "D") %>%
+  mutate(uf = reorder(uf, n)) %>%
+  ggplot(aes(x=n,y=uf))+
+  geom_col()
+
+
+residuo_teste %>%
+  filter(capag_oficial == "n.d.") %>%
+  mutate(uf = reorder(uf, n)) %>%
+  ggplot(aes(x=n,y=uf))+
+  geom_col()
+
+
+
+residuo_teste %>%
+  mutate(rank = rank(-abs(n))) %>%
+  filter(rank<=10) %>%
+  mutate(ordem = as.factor(rank)) %>%
+  mutate(ordem = fct_reorder(ordem, rank, .desc=TRUE) ) %>%
+  ggplot(aes(x=n,y=ordem, fill= capag_oficial))+
+  geom_col() +
+  geom_text(aes(label= uf))
+
+
+
+

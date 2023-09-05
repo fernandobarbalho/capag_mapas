@@ -52,6 +52,52 @@ gera_mapa_categoria<- function(categoria, point_color="red", titulo){
 }
 
 
+gera_mapa_destaque_categoria<- function(.data,categoria, point_color="red", titulo){
+
+  uf_sel<-
+    unique(.data$uf)
+
+  sedes<-
+    sedes_municipios %>%
+    inner_join(
+      .data %>%
+        filter(capag_oficial== categoria) %>%
+        rename(code_muni = cod_ibge)
+    )
+
+  estados_sel<-
+    estados %>%
+    filter(abbrev_state %in% uf_sel)
+
+  sedes_municipios %>%
+    inner_join(
+       .data %>%
+         rename(code_muni = cod_ibge)
+     ) %>%
+    ggplot()+
+    geom_sf( pch=21, fill="#808080",  color="#808080", size= 0.5) +
+    geom_sf(data = sedes,pch=21,  fill=point_color, color = point_color, size= 0.5 )+
+    geom_sf(data= estados_sel, fill=NA, color="white") +
+    theme_light() +
+    theme(
+      #text = element_text(size=20),
+      panel.background = element_rect(fill = "black"),
+      panel.grid = element_blank(),
+      axis.title.x = element_blank(),
+      axis.title.y = element_blank(),
+      strip.background = element_rect(fill = "#505050"),
+      strip.text = element_text(color = "white"),
+      axis.text = element_blank(),
+      legend.key = element_rect(fill = "black")
+
+    ) +
+    labs(title = titulo)
+
+
+}
+
+
+
 gera_mapa_nota_indicador<- function(.data,a_indicador, mid_point, com_facet=TRUE, a_size=1){
 
   indicador<- str_c("indicador_",a_indicador)
@@ -251,3 +297,63 @@ dados_capag_2022 %>%
   filter_outliers("indicador_3") %>%
   gera_mapa_nota_indicador("3",1,  a_size= 1.8)
 
+
+
+####Mapas de estados específicos para categorias específicas
+
+mapa_a1<-
+dados_capag_2022 %>%
+  filter(uf %in% c("RS")) %>%
+  gera_mapa_destaque_categoria(categoria = "A", titulo = "Munícipios Nota A")
+
+
+mapa_a2<-
+  dados_capag_2022 %>%
+  filter(uf %in% c("AL")) %>%
+  gera_mapa_destaque_categoria(categoria = "A", titulo = "Munícipios Nota A")
+
+mapa_a3<-
+  dados_capag_2022 %>%
+  filter(uf %in% c("BA")) %>%
+  gera_mapa_destaque_categoria(categoria = "A", titulo = "Munícipios Nota A")
+
+mapa_a1+mapa_a3
+
+dados_capag_2022 %>%
+  filter(uf %in% c("AL","BA","RS")) %>%
+  gera_mapa_destaque_categoria(categoria = "A", titulo = "Munícipios Nota A")
+
+
+mapa_nd1<-
+  dados_capag_2022 %>%
+  filter(uf %in% c("GO")) %>%
+  gera_mapa_destaque_categoria(categoria = "n.d.", titulo = "Munícipios não avaliados")
+
+
+mapa_nd2<-
+  dados_capag_2022 %>%
+  filter(uf %in% c("TO")) %>%
+  gera_mapa_destaque_categoria(categoria = "n.d.", titulo = "Munícipios não avaliados")
+
+
+mapa_nd3<-
+  dados_capag_2022 %>%
+  filter(uf %in% c("PA")) %>%
+  gera_mapa_destaque_categoria(categoria = "n.d.", titulo = "Munícipios não avaliados")
+
+
+mapa_nd4<-
+  dados_capag_2022 %>%
+  filter(uf %in% c("RS")) %>%
+  gera_mapa_destaque_categoria(categoria = "n.d.", titulo = "Munícipios não avaliados")
+
+mapa_nd1 + mapa_nd2 + mapa_nd3 + mapa_nd4
+
+dados_capag_2022 %>%
+  filter(uf %in% c("GO","TO","PA", "RS")) %>%
+  gera_mapa_destaque_categoria(categoria = "n.d.", titulo = "Munícipios não avaliados")
+
+
+dados_capag_2022 %>%
+  filter(uf %in% c("BA", "RS")) %>%
+  gera_mapa_destaque_categoria(categoria = "A", titulo = "Munícipios nota A")
