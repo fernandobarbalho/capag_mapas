@@ -353,3 +353,7 @@ capag_regic_trabalho %>%
   geom_bar(aes(y=nh, fill= capag_oficial))
 
 
+capag_regic_trabalho %>%
+  ggplot() +
+  geom_bar(aes(y=capag_oficial))
+
