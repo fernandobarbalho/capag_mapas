@@ -83,6 +83,33 @@ gera_tabela_ibge_municipios<- function(){
 ibge2022<-
   gera_tabela_ibge_municipios()
 
+
+#### REGIC e arranjos populacionais
+
+regic <- read_excel("REGIC2018_Cidades_v2.xlsx",
+                                   sheet = "Base de dados por Cidades")
+
+
+regic <- janitor::clean_names(regic)
+
+
+
+
+
+###Transformando os dados
+
+regic_trabalho<-
+  regic %>%
+  select(1:3,13,14)
+
+names(regic_trabalho)[4:5]<- c("nivel_hierarquia","nome_nivel_hierarquia")
+
+
+REGIC2018_Arranjos_Populacionais_v2 <- read_excel("REGIC2018_Arranjos_Populacionais_v2.xlsx")
+
+
+####Exportação
+
 rio::export(mapa_municipios, "mapa_municipios.RDS")
 rio::export(sedes_municipios,"sedes_municipios.RDS")
 rio::export(estados, "estados.RDS")
@@ -90,3 +117,7 @@ rio::export(brasil,"brasil.rds")
 
 rio::export(ibge2022,"ibge2022.RDS")
 rio::export(dados_capag_2022,"dados_capag_2022.RDS")
+
+rio::export(regic_trabalho,"regic_trabalho.RDS")
+
+
