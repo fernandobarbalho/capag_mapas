@@ -307,28 +307,32 @@ residuo_teste_capag_regic %>%
   filter(capag_oficial == "A") %>%
   mutate(nivel_hierarquico = reorder(nivel_hierarquico, n)) %>%
   ggplot(aes(x=n,y=nivel_hierarquico))+
-  geom_col()
+  geom_col() +
+  geom_vline(xintercept = c(-2,2), color = 'red')
 
 
 residuo_teste_capag_regic %>%
   filter(capag_oficial == "B") %>%
   mutate(nivel_hierarquico = reorder(nivel_hierarquico, n)) %>%
   ggplot(aes(x=n,y=nivel_hierarquico))+
-  geom_col()
+  geom_col()+
+  geom_vline(xintercept = c(-2,2), color = 'red')
 
 
 residuo_teste_capag_regic %>%
   filter(capag_oficial == "C") %>%
   mutate(nivel_hierarquico = reorder(nivel_hierarquico, n)) %>%
   ggplot(aes(x=n,y=nivel_hierarquico))+
-  geom_col()
+  geom_col()+
+  geom_vline(xintercept = c(-2,2), color = 'red')
 
 
 residuo_teste_capag_regic %>%
   filter(capag_oficial == "n.d.") %>%
   mutate(nivel_hierarquico = reorder(nivel_hierarquico, n)) %>%
   ggplot(aes(x=n,y=nivel_hierarquico))+
-  geom_col()
+  geom_col()+
+  geom_vline(xintercept = c(-2,2), color = 'red')
 
 
 
@@ -339,7 +343,8 @@ residuo_teste_capag_regic %>%
   mutate(ordem = fct_reorder(ordem, rank, .desc=TRUE) ) %>%
   ggplot(aes(x=n,y=ordem, fill= capag_oficial))+
   geom_col() +
-  geom_text(aes(label= nivel_hierarquico))
+  geom_text(aes(label= nivel_hierarquico))+
+  geom_vline(xintercept = c(-2,2), color = 'red')
 
 
 

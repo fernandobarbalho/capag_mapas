@@ -14,6 +14,16 @@ dados_capag_2022 <- rio::import("dados_capag_2022.RDS")
 source("analise_exploratoria.R")
 
 
+paleta_sequencial<- function(){
+  color_vector <- c("#ffffff", "#ffddbb", "#ffaa66", "#ff8800", "#ff6600")
+  color_vector
+}
+
+paleta_qualitativa<- function(){
+  qualitative_contrast_vector <- c("#FF6347", "#32CD32", "#1E90FF", "#FFD700", "#BA55D3")
+  qualitative_contrast_vector
+}
+
 gera_mapa_categoria<- function(categoria, point_color="#ff6600", titulo){
 
   sedes<-
@@ -62,7 +72,7 @@ gera_mapa_destaque_categoria<- function(.data,categoria, point_color="#ff6600", 
     sedes_municipios %>%
     inner_join(
       .data %>%
-        filter(capag_oficial== categoria) %>%
+        filter(capag_oficial %in%  categoria) %>%
         rename(code_muni = !!sym(var_cod_mun))
     )
 
@@ -81,6 +91,56 @@ gera_mapa_destaque_categoria<- function(.data,categoria, point_color="#ff6600", 
     geom_sf( pch=21, fill="#808080",  color="#808080", size= 0.5) +
     geom_sf(data = sedes,pch=21,  fill=point_color, color = point_color, size= 0.5 )+
     geom_sf(data= estados_sel, fill=NA, color="white") +
+    theme_light() +
+    theme(
+      #text = element_text(size=20),
+      panel.background = element_rect(fill = "black"),
+      panel.grid = element_blank(),
+      axis.title.x = element_blank(),
+      axis.title.y = element_blank(),
+      strip.background = element_rect(fill = "#505050"),
+      strip.text = element_text(color = "white"),
+      axis.text = element_blank(),
+      legend.key = element_rect(fill = "black")
+
+    ) +
+    labs(title = titulo)
+
+
+}
+
+
+gera_mapa_destaque_varias_categoria<- function(.data,categoria,  titulo,  var_cod_mun = "cod_ibge", a_size=0.6){
+
+  uf_sel<-
+    unique(.data$uf)
+
+
+  sedes<-
+    sedes_municipios %>%
+    inner_join(
+      .data %>%
+        filter(capag_oficial %in% categoria) %>%
+        rename(code_muni = !!sym(var_cod_mun))
+    )
+
+  estados_sel<-
+    estados %>%
+    filter(abbrev_state %in% uf_sel)
+
+
+
+  sedes_municipios %>%
+    inner_join(
+      .data %>%
+        rename(code_muni = !!sym(var_cod_mun))
+    ) %>%
+    ggplot()+
+    geom_sf( pch=21, fill="#808080",  color="#808080", size= a_size) +
+    geom_sf(data = sedes,pch=21, aes(fill=capag_oficial, color= capag_oficial), size=a_size )+
+    geom_sf(data= estados_sel, fill=NA, color="white") +
+    scale_fill_manual(values= paleta_qualitativa())+
+    scale_color_manual(values= paleta_qualitativa())+
     theme_light() +
     theme(
       #text = element_text(size=20),
@@ -370,9 +430,56 @@ fab<-
   capag_regic_trabalho %>%
   filter( nivel_hierarquia == "0")
 
+mun_0a<-
 capag_regic_trabalho %>%
   filter( nivel_hierarquia == "0")%>%
   gera_mapa_destaque_categoria(categoria = "A", titulo = "Munícipios nota A", var_cod_mun = "cod_cidade")
+
+
+mun0c<-
+capag_regic_trabalho %>%
+  filter( nivel_hierarquia == "0")%>%
+  gera_mapa_destaque_categoria(categoria = "C", titulo = "Munícipios nota C", var_cod_mun = "cod_cidade")
+
+
+mun_0a +mun0c
+
+
+mun_0asp<-
+  capag_regic_trabalho %>%
+  filter( nivel_hierarquia == "0",
+          uf == "RS")%>%
+  gera_mapa_destaque_categoria(categoria = "A", titulo = "Munícipios nota A", var_cod_mun = "cod_cidade")
+
+
+mun0csp<-
+  capag_regic_trabalho %>%
+  filter( nivel_hierarquia == "0",
+          uf == "RS")%>%
+  gera_mapa_destaque_categoria(categoria = "C", titulo = "Munícipios nota C", var_cod_mun = "cod_cidade")
+
+
+
+mun_0ars<-
+  capag_regic_trabalho %>%
+  filter( nivel_hierarquia == "0",
+          uf == "RS")%>%
+  gera_mapa_destaque_categoria(categoria = "A", titulo = "Munícipios nota A", var_cod_mun = "cod_cidade")
+
+
+mun0crs<-
+  capag_regic_trabalho %>%
+  filter( nivel_hierarquia == "0",
+          uf == "RS")%>%
+  gera_mapa_destaque_categoria(categoria = "C", titulo = "Munícipios nota C", var_cod_mun = "cod_cidade")
+
+
+capag_regic_trabalho %>%
+  filter( nivel_hierarquia == "0")%>%
+  gera_mapa_destaque_varias_categoria (categoria = c("A","C"), titulo = "Munícipios nota C", var_cod_mun = "cod_cidade")
+
+
+
 
 
 capag_regic_trabalho %>%
@@ -411,3 +518,42 @@ capag_regic_trabalho %>%
   filter( nivel_hierarquia %in% c("2C","3A"))%>%
   gera_mapa_destaque_categoria(categoria = "n.d.", titulo = "Munícipios sem nota", var_cod_mun = "cod_cidade")
 
+
+
+capag_regic_trabalho %>%
+  filter( nivel_hierarquia == "0")%>%
+  gera_mapa_destaque_varias_categoria (categoria = c("A","B", "C", "D", "n.d."), titulo = "Munícipios nota C", var_cod_mun = "cod_cidade")
+
+capag_regic_trabalho %>%
+  filter( nivel_hierarquia == "0",
+          uf %in% c("RS"))%>%
+  gera_mapa_destaque_varias_categoria (categoria = c("A","B", "C", "D", "n.d."), titulo = "Munícipios nota C", var_cod_mun = "cod_cidade", a_size = 1)
+
+
+capag_regic_trabalho %>%
+  filter( nivel_hierarquia == "0",
+          uf %in% c("GO"))%>%
+  gera_mapa_destaque_varias_categoria (categoria = c("A","B", "C", "D", "n.d."), titulo = "Munícipios nota C", var_cod_mun = "cod_cidade", a_size = 1)
+
+
+
+capag_regic_trabalho %>%
+  filter( nivel_hierarquia == "5")%>%
+  gera_mapa_destaque_varias_categoria (categoria = c("A","B", "C", "D", "n.d."), titulo = "Munícipios nota C", var_cod_mun = "cod_cidade", a_size = 0.3)
+
+
+capag_regic_trabalho %>%
+  filter( nivel_hierarquia == "5",
+          uf =="GO")%>%
+  gera_mapa_destaque_varias_categoria (categoria = c("A","B", "C", "D", "n.d."), titulo = "Munícipios nota C", var_cod_mun = "cod_cidade", a_size = 1)
+
+
+capag_regic_trabalho %>%
+  filter( nivel_hierarquia == "5",
+          uf =="CE")%>%
+  gera_mapa_destaque_varias_categoria (categoria = c("A","B", "C", "D", "n.d."), titulo = "Munícipios nota C", var_cod_mun = "cod_cidade", a_size = 1)
+
+
+capag_regic_trabalho %>%
+  filter( nivel_hierarquia %in% c("1","2B","3A","3B","4A"))%>%
+  gera_mapa_destaque_varias_categoria (categoria = c("A","B", "C", "D", "n.d."), titulo = "Munícipios nota C", var_cod_mun = "cod_cidade", a_size = 1)
