@@ -163,10 +163,17 @@ dados_capag_2022 %>%
 
 
 
-#Box plot dos dados desconsiderando os outliers
+#Box plot dos dados com tratamento de outliers
 
+#Box-plot dos extremos superiores
 dados_capag_2022 %>%
-  filter_outliers("indicador_1") %>%
+  filter_outliers("indicador_1", type="U") %>%
+  gera_box_plot_indicador("1")
+
+
+#Box plot sem outliers
+dados_capag_2022 %>%
+  filter_outliers("indicador_1", type="E") %>%
   gera_box_plot_indicador("1")
 
 
