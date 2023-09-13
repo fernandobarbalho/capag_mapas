@@ -1,6 +1,7 @@
 library(sf)
 library(spdep)
 library(tidyverse)
+library(colorspace)
 
 
 ##Teste para identificar coordenadas com problemas
@@ -140,14 +141,43 @@ df_clusters_espaciais<-
 
 df_clusters_espaciais %>%
   ggplot() +
-  geom_sf(aes(fill=ii))
+  geom_sf(aes(fill=ii),color=NA)
 
 
 df_clusters_espaciais %>%
   ggplot() +
-  geom_sf(aes(fill=z_ii))
+  geom_sf(aes(fill=z_ii),color=NA)
 
 
 df_clusters_espaciais %>%
   ggplot() +
-  geom_sf(aes(fill=indicador_1))
+  geom_sf(aes(fill=indicador_1),color=NA) +
+  geom_sf(data = estados,fill=NA) +
+  scale_fill_continuous_sequential(palette="Heat 2") +
+  theme_void() +
+  theme(
+    panel.background = element_rect(fill = "black")
+  )
+
+
+df_clusters_espaciais %>%
+  ggplot() +
+  geom_sf(aes(fill=z_ii),color=NA) +
+  geom_sf(data = estados,fill=NA) +
+  scale_fill_continuous_divergingx (palette="Zissou 1", rev= TRUE) +
+  theme_void() +
+  theme(
+    panel.background = element_rect(fill = "black")
+  )
+
+
+df_clusters_espaciais %>%
+  filter(abbrev_state=="CE") %>%
+  ggplot() +
+  geom_sf(aes(fill=z_ii),color=NA) +
+  geom_sf(data = estados[estados$abbrev_state == "CE",],fill=NA) +
+  scale_fill_continuous_divergingx (palette="Zissou 1", rev= TRUE) +
+  theme_void() +
+  theme(
+    panel.background = element_rect(fill = "black")
+  )
