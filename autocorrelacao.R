@@ -18,7 +18,6 @@ centroides<-
 
 
 
-set.seed(13) # because we are randomizing part of the process# Access the shapefile
 
 
 # Access the shapefile
@@ -62,7 +61,7 @@ s %>%
 nb <- poly2nb(s, queen=TRUE) # here nb list all ID numbers of neighbors;
 
 # assign weights to neighbors
-lw <- nb2listw(nb, style="W", zero.policy=TRUE) # equal weights
+lw <- nb2listw(nb, style="W", zero.policy=TRUE) # Row-standardized weights
 
 
 # compute neighbor average
@@ -95,5 +94,12 @@ MC# plot Null distribution
 plot(MC)
 
 
+lisa<- spdep::localmoran(s$indicador_1, lw, zero.policy=TRUE)
 
+df_lisa<- as_tibble(lisa)
 
+names(df_lisa)
+
+lisa %>%
+  mutate(id= row_number()) %>%
+  filter()
