@@ -2,6 +2,7 @@ library(sf)
 library(spdep)
 library(tidyverse)
 library(colorspace)
+library(patchwork)
 
 
 ##Teste para identificar coordenadas com problemas
@@ -119,22 +120,50 @@ df_vizinhos<-
 purrr::map_dfr(df_lisa_significante$id, function(a_id){
 
 
-  tibble(id=lw[["neighbours"]][[a_id]],
-         id_referencia= a_id,
-         ii= rep(df_lisa_significante$ii[which(df_lisa_significante$id== a_id)], NROW(lw[["neighbours"]][[a_id]]) ),
-         z_ii = rep(df_lisa_significante$z_ii[which(df_lisa_significante$id== a_id)], NROW(lw[["neighbours"]][[a_id]])))
+  tibble(id= c(a_id, lw[["neighbours"]][[a_id]]),
+         id_referencia= rep(a_id,NROW(lw[["neighbours"]][[a_id]])+1),
+         ii=  rep(df_lisa_significante$ii[which(df_lisa_significante$id== a_id)], NROW(lw[["neighbours"]][[a_id]])+1),
+         z_ii=  rep(df_lisa_significante$z_ii[which(df_lisa_significante$id== a_id)], NROW(lw[["neighbours"]][[a_id]])+1))
 
 })
+
+
+
+id_central<-
+  unique(df_vizinhos$id_referencia)
+
+
+
+df_vizinhos %>%
+  filter(id %in% id_central) %>%
+  filter(id == 878) %>%
+  summarise(.by = id,
+            max_abs= max(abs(z_ii)))
+
+
+clusters_selecionado<-
+df_vizinhos %>%
+  filter(id %in% id_central) %>%
+  group_by(id) %>%
+  filter(abs(z_ii) == max(abs(z_ii))) %>%
+  ungroup()
+
+id_referencia_selecao<- unique(clusters_selecionado$id_referencia)
+
+vizinhos_selecao<-
+  df_vizinhos %>%
+  filter(id_referencia %in% id_referencia_selecao)%>%
+  group_by(id) %>%
+  filter(abs(z_ii) == max(abs(z_ii))) %>%
+  ungroup()
+
 
 
 df_clusters_espaciais<-
   df_shape %>%
   mutate(id = row_number())%>%
   inner_join(
-    df_vizinhos %>%
-      group_by(id) %>%
-      filter(z_ii == max(z_ii)) %>%
-      ungroup()
+    vizinhos_selecao
 
   )
 
@@ -171,13 +200,147 @@ df_clusters_espaciais %>%
   )
 
 
+g1<-
 df_clusters_espaciais %>%
   filter(abbrev_state=="CE") %>%
   ggplot() +
-  geom_sf(aes(fill=z_ii),color=NA) +
+  geom_sf(aes(fill=z_ii)) +
   geom_sf(data = estados[estados$abbrev_state == "CE",],fill=NA) +
   scale_fill_continuous_divergingx (palette="Zissou 1", rev= TRUE) +
   theme_void() +
   theme(
     panel.background = element_rect(fill = "black")
   )
+
+
+g2<-
+df_clusters_espaciais %>%
+  filter(abbrev_state=="CE") %>%
+  ggplot() +
+  geom_sf(aes(fill=indicador_1)) +
+  geom_sf(data = estados[estados$abbrev_state == "CE",],fill=NA) +
+  scale_fill_continuous_sequential (palette="Heat 2") +
+  theme_void() +
+  theme(
+    panel.background = element_rect(fill = "black")
+  )
+
+
+g1+g2
+
+
+map_centros<-
+  df_clusters_espaciais %>%
+  filter(abbrev_state == "PA",
+         id %in% id_referencia_selecao )
+
+
+g1<-
+  df_clusters_espaciais %>%
+  filter(abbrev_state=="PA") %>%
+  ggplot() +
+  geom_sf(aes(fill=z_ii)) +
+  geom_sf(data = estados[estados$abbrev_state == "PA",],fill=NA) +
+  geom_sf_text(data= map_centros, aes(label = name_muni), color ="white" ) +
+  scale_fill_continuous_divergingx (palette="Zissou 1", rev= TRUE) +
+  theme_void() +
+  theme(
+    panel.background = element_rect(fill = "black")
+  )
+
+
+g2<-
+  df_clusters_espaciais %>%
+  filter(abbrev_state=="PA") %>%
+  ggplot() +
+  geom_sf(aes(fill=indicador_1)) +
+  geom_sf(data = estados[estados$abbrev_state == "PA",],fill=NA) +
+  scale_fill_continuous_sequential (palette="Heat 2") +
+  theme_void() +
+  theme(
+    panel.background = element_rect(fill = "black")
+  )
+
+
+
+
+g1+g2
+
+map_centros_selecao<-
+  map_centros %>%
+  filter(id_referencia == 135 )
+
+g1<-
+  df_clusters_espaciais%>%
+  filter(id %in% c(135,lw[["neighbours"]][[135]]))%>%
+  ggplot() +
+  geom_sf(aes(fill=z_ii)) +
+  geom_sf(data = estados[estados$abbrev_state == "PA",],fill=NA) +
+  geom_sf_text(data= map_centros_selecao, aes(label = name_muni), color ="white" ) +
+  scale_fill_continuous_divergingx (palette="Zissou 1", rev= TRUE) +
+  theme_void() +
+  theme(
+    panel.background = element_rect(fill = "black")
+  )
+
+
+g2<-
+  df_clusters_espaciais %>%
+  filter(id %in% c(135,lw[["neighbours"]][[135]]))%>%
+  ggplot() +
+  geom_sf(aes(fill=indicador_1)) +
+  geom_sf(data = estados[estados$abbrev_state == "PA",],fill=NA) +
+  scale_fill_continuous_sequential (palette="Heat 2") +
+  theme_void() +
+  theme(
+    panel.background = element_rect(fill = "black")
+  )
+
+
+
+
+g1+g2
+
+
+g1+g2
+
+map_centros_selecao<-
+  map_centros %>%
+  filter(id_referencia == 134 )
+
+g1<-
+  df_clusters_espaciais%>%
+  filter(id %in% c(134,lw[["neighbours"]][[134]]))%>%
+  ggplot() +
+  geom_sf(aes(fill=z_ii)) +
+  geom_sf(data = estados[estados$abbrev_state == "PA",],fill=NA) +
+  geom_sf_text(data= map_centros_selecao, aes(label = name_muni), color ="white" ) +
+  scale_fill_continuous_divergingx (palette="Zissou 1", rev= TRUE) +
+  theme_void() +
+  theme(
+    panel.background = element_rect(fill = "black")
+  )
+
+
+g2<-
+  df_clusters_espaciais %>%
+  filter(id %in% c(134,lw[["neighbours"]][[134]]))%>%
+  ggplot() +
+  geom_sf(aes(fill=indicador_1)) +
+  geom_sf(data = estados[estados$abbrev_state == "PA",],fill=NA) +
+  scale_fill_continuous_sequential (palette="Heat 2") +
+  theme_void() +
+  theme(
+    panel.background = element_rect(fill = "black")
+  )
+
+
+
+
+g1+g2
+
+
+
+fab<-
+  df_clusters_espaciais%>%
+  filter(id %in% c(134,lw[["neighbours"]][[134]]))
