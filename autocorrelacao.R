@@ -38,6 +38,8 @@ agrupa_mapa_id_referencia<- function(.data){
 }
 
 
+
+
 fab<-
   df_clusters_espaciais %>%
   filter(abbrev_state == "CE") %>%
@@ -56,10 +58,10 @@ df_clusters_espaciais %>%
   filter(abbrev_state == "CE") %>%
   agrupa_mapa_id_referencia() %>%
   ggplot() +
-  geom_sf(data= mun_ce, color="lightgray" , fill= NA)+
-  geom_sf(aes(geometry = geometry), color="black", lwd=1.2,  show.legend = FALSE) +
+  #geom_sf(data= mun_ce, color="lightgray" , fill= NA)+
+  geom_sf(aes(geometry = geometry, alpha= multiplicador -1, fill= z_ii), color=NA,  show.legend = FALSE) +
   #geom_sf(aes(geometry = geometry, color= z_ii),  show.legend = FALSE) +
-  geom_sf(data= mun_ce_clusters, aes(fill=sign(z_ii)*indicador_1) , color = NA)+
+  #geom_sf(data= mun_ce_clusters, aes(fill=sign(z_ii)*indicador_1) , color = NA)+
   scale_fill_continuous_divergingx(palette= "Zissou 1", rev= TRUE,alpha=0.8) +
   #scale_color_continuous_divergingx(palette= "Zissou 1", rev= TRUE) +
   theme_void()
