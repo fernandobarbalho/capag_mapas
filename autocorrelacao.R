@@ -4,6 +4,76 @@ library(tidyverse)
 library(colorspace)
 library(patchwork)
 
+#parte das análises contaram com a colaboração desse diálogo realizado no chatGPT
+##https://chat.openai.com/share/2c6582dd-e42b-45e4-9ba1-91f9b13c14ed
+
+
+
+agrupa_mapa_id_referencia<- function(.data){
+
+  ids_referencia<- unique(.data$id_referencia)
+
+  purrr::map_dfr(ids_referencia, function(a_id){
+
+
+    z_ii_objeto<- unique(.data$z_ii[.data$id_referencia==a_id])
+    ii_objeto<- unique(.data$ii[.data$id_referencia==a_id])
+
+
+    df_clusters_espaciais %>%
+      filter(id %in% c(a_id,lw[["neighbours"]][[a_id]]))%>%
+      filter(abbrev_state=="CE") %>%
+      group_by(id_referencia) %>%
+      st_union() %>%
+      as.tibble() %>%
+      mutate(id_referencia =a_id,
+             z_ii = z_ii_objeto,
+             ii = ii_objeto,
+             multiplicador = 1+runif(n=1))
+
+
+  })
+
+
+}
+
+
+fab<-
+  df_clusters_espaciais %>%
+  filter(abbrev_state == "CE") %>%
+  agrupa_mapa_id_referencia()
+
+mun_ce<-
+  mapa_municipios %>%
+  filter(abbrev_state == "CE")
+
+mun_ce_clusters<-
+  df_clusters_espaciais%>%
+  filter(abbrev_state == "CE")
+
+g1<-
+df_clusters_espaciais %>%
+  filter(abbrev_state == "CE") %>%
+  agrupa_mapa_id_referencia() %>%
+  ggplot() +
+  geom_sf(data= mun_ce, color="lightgray" , fill= NA)+
+  geom_sf(aes(geometry = geometry), color="black", lwd=1.2,  show.legend = FALSE) +
+  #geom_sf(aes(geometry = geometry, color= z_ii),  show.legend = FALSE) +
+  geom_sf(data= mun_ce_clusters, aes(fill=sign(z_ii)*indicador_1) , color = NA)+
+  scale_fill_continuous_divergingx(palette= "Zissou 1", rev= TRUE,alpha=0.8) +
+  #scale_color_continuous_divergingx(palette= "Zissou 1", rev= TRUE) +
+  theme_void()
+
+
+g2<-
+  df_clusters_espaciais %>%
+  filter(abbrev_state == "CE") %>%
+  agrupa_mapa_id_referencia() %>%
+  ggplot() +
+  geom_sf(aes(geometry = geometry),show.legend = TRUE) +
+  #geom_sf(data= mun_ce, color= "lightgray", fill= NA)+
+  theme_void()
+
 
 ##Teste para identificar coordenadas com problemas
 
@@ -167,6 +237,32 @@ df_clusters_espaciais<-
 
   )
 
+
+fab<-
+  df_clusters_espaciais %>%
+  filter(id_referencia == 878) %>%
+  st_union(by_feature = FALSE)
+
+mun_rmf<-
+  df_clusters_espaciais %>%
+  filter(id_referencia == 878)
+
+
+fab %>%
+  ggplot() +
+  geom_sf() +
+  geom_sf(data=mun_rmf)
+
+
+fab_2<-
+  df_clusters_espaciais %>%
+  group_by(id_referencia) %>%
+  st_union()
+
+
+fab_2 %>%
+  ggplot() +
+  geom_sf()
 
 df_clusters_espaciais %>%
   ggplot() +
@@ -341,6 +437,37 @@ g1+g2
 
 
 
-fab<-
-  df_clusters_espaciais%>%
-  filter(id %in% c(134,lw[["neighbours"]][[134]]))
+
+g1<-
+  df_clusters_espaciais %>%
+  filter(id %in% c(878,lw[["neighbours"]][[878]]))%>%
+  filter(abbrev_state=="CE") %>%
+  group_by(id_referencia) %>%
+  st_union() %>%
+  ggplot() +
+  geom_sf(fill= aes(fill=id_referencia) , color =NA) +
+  geom_sf(data = estados[estados$abbrev_state == "CE",],fill=NA) +
+  #scale_fill_continuous_divergingx (palette="Zissou 1", rev= TRUE) +
+  scale_fill_discrete_qualitative(palette= "Dark 1") +
+  theme_void() +
+  theme(
+    panel.background = element_rect(fill = "black")
+  )
+
+
+g2<-
+  df_clusters_espaciais %>%
+  filter(abbrev_state=="CE") %>%
+  ggplot() +
+  geom_sf(aes(fill=indicador_1)) +
+  geom_sf(data = estados[estados$abbrev_state == "CE",],fill=NA) +
+  scale_fill_continuous_sequential (palette="Heat 2") +
+  theme_void() +
+  theme(
+    panel.background = element_rect(fill = "black")
+  )
+
+
+g1+g2
+
+
