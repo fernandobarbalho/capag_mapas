@@ -146,20 +146,20 @@ clusters_indicador_1<-
   gera_clusters_espaciais()
 
 
-agrupa_mapa_id_referencia<- function(.data, uf=NULL, sinal=NULL){
+agrupa_mapa_id_referencia<- function(.data, a_uf="", sinal=0){
 
 
   clusters_espaciais_trabalho<-
-    .data[["df_clusters_espaciais"]][["id_referencia"]]
+    .data[["df_clusters_espaciais"]]
 
-  if (!is.null(uf)){
+  if (a_uf!=""){
     clusters_espaciais_trabalho <-
       clusters_espaciais_trabalho %>%
-      filter(abbrev_state == uf)
+      filter(abbrev_state == a_uf)
 
   }
 
-  if (!is.null(sinal)){
+  if (sinal!=0){
     clusters_espaciais_trabalho <-
       clusters_espaciais_trabalho %>%
       filter(sign(z_ii) == sinal)
@@ -167,7 +167,8 @@ agrupa_mapa_id_referencia<- function(.data, uf=NULL, sinal=NULL){
   }
 
 
-  ids_referencia<- unique(clusters_espaciais_trabalho)
+  ids_referencia<- unique(clusters_espaciais_trabalho$id_referencia)
+  vizinhos<-.data$lw$neighbours
 
   purrr::map_dfr(ids_referencia, function(a_id){
 
@@ -177,9 +178,8 @@ agrupa_mapa_id_referencia<- function(.data, uf=NULL, sinal=NULL){
     media_indice<- mean(clusters_espaciais_trabalho$indicador_1[clusters_espaciais_trabalho$id_referencia==a_id])
 
 
-    clusters_espaciais_trabalho[["df_clusters_espaciais"]] %>%
-      filter(id %in% c(a_id,.data[["lw"]][["neighbours"]][[a_id]]))%>%
-      filter(abbrev_state=="CE") %>%
+    clusters_espaciais_trabalho %>%
+      filter(id %in% c(a_id,vizinhos[a_id]))%>%
       group_by(id_referencia) %>%
       st_union() %>%
       as.tibble() %>%
@@ -198,23 +198,23 @@ agrupa_mapa_id_referencia<- function(.data, uf=NULL, sinal=NULL){
 
 
 
+
+
 fab<-
-  clusters_indicador_1[["df_clusters_espaciais"]] %>%
-  filter(abbrev_state == "CE",
-         z_ii>0) %>%
-  agrupa_mapa_id_referencia()
+  clusters_indicador_1 %>%
+  agrupa_mapa_id_referencia("CE",1)
 
 mun_ce<-
   mapa_municipios %>%
   filter(abbrev_state == "CE")
 
 mun_ce_clusters<-
-  clusters_indicador_1%>%
+  clusters_indicador_1$df_clusters_espaciais%>%
   filter(abbrev_state == "CE")
 
 
 mun_ce_clusters_positivo<-
-  clusters_indicador_1%>%
+  clusters_indicador_1$df_clusters_espaciais%>%
   filter(abbrev_state == "CE",
          z_ii>0)
 
@@ -223,8 +223,7 @@ mun_ce_clusters_positivo<-
 #opção de colorir usando alphas aleatórios
 
 clusters_indicador_1 %>%
-  filter(abbrev_state %in% c("CE")) %>%
-  agrupa_mapa_id_referencia() %>%
+  agrupa_mapa_id_referencia("CE",1)%>%
   ggplot() +
   #geom_sf(data= mun_ce, color="lightgray" , fill= NA)+
   geom_sf(aes(geometry = geometry, alpha= multiplicador -1, fill= z_ii), color=NA,  show.legend = FALSE) +
@@ -241,45 +240,10 @@ clusters_indicador_1 %>%
 
 #opção de colorir usando médias
 
-fab<-
-  clusters_indicador_1 %>%
-  filter(abbrev_state %in% c("CE"),
-         z_ii>0)%>%
-  agrupa_mapa_id_referencia()
-
-
-fab%>%
-  ggplot() +
-  geom_sf(aes(geometry = geometry,  fill= media_indice), color=NA,  show.legend = TRUE)
-
-fab2%>%
-  ggplot() +
-  geom_sf(aes(geometry = geometry,  fill= media_indice), color=NA,  show.legend = TRUE)
-
-fab3%>%
-  ggplot() +
-  geom_sf(aes(geometry = geometry,  fill= media_indice), color=NA,  show.legend = TRUE)
-
-
-fab3<-
-  clusters_indicador_1 %>%
-  filter(abbrev_state %in% c("PE"),
-         z_ii>0)%>%
-  agrupa_mapa_id_referencia()
-
-
-
-fab2<-
-  clusters_indicador_1 %>%
-  filter(abbrev_state %in% c("CE","PI","PE","PB","RN"),
-         z_ii>0)%>%
-  agrupa_mapa_id_referencia()
 
 
 clusters_indicador_1 %>%
-  filter(abbrev_state %in% c("CE"),
-         z_ii>0) %>%
-  agrupa_mapa_id_referencia() %>%
+  agrupa_mapa_id_referencia("CE",1)%>%
   ggplot() +
   geom_sf(data= mun_ce, color="lightgray" , fill= NA)+
   geom_sf(aes(geometry = geometry,  fill= media_indice), color=NA,  show.legend = TRUE) +
