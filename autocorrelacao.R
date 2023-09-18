@@ -179,10 +179,10 @@ agrupa_mapa_id_referencia<- function(.data, a_uf="", sinal=0){
 
 
     clusters_espaciais_trabalho %>%
-      filter(id %in% c(a_id,vizinhos[a_id]))%>%
+      filter(id %in% c(a_id,vizinhos[[a_id]]))%>%
       group_by(id_referencia) %>%
       st_union() %>%
-      as.tibble() %>%
+      as_tibble() %>%
       mutate(id_referencia =a_id,
              z_ii = z_ii_objeto,
              ii = ii_objeto,
@@ -290,9 +290,10 @@ fab2<-
 
 
 clusters_indicador_1 %>%
-  agrupa_mapa_id_referencia() %>%
+  agrupa_mapa_id_referencia(sinal = 1) %>%
   ggplot() +
   geom_sf(aes(geometry = geometry,  fill= media_indice), color=NA,  show.legend = TRUE) +
+  geom_sf(data=estados, fill= NA) +
   scale_fill_continuous_sequential(palette = "Heat 2")+
   theme_void()+
   theme(
@@ -315,6 +316,9 @@ centroides<-
   })
 
 
+
+
+###########Laboratórios diversos
 
 
 
