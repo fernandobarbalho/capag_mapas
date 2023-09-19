@@ -181,7 +181,8 @@ agrupa_mapa_id_referencia<- function(.data, a_uf="", sinal=0, indicador){
     z_ii_objeto<- unique(clusters_espaciais_trabalho$z_ii[clusters_espaciais_trabalho$id_referencia==a_id])
     ii_objeto<- unique(clusters_espaciais_trabalho$ii[clusters_espaciais_trabalho$id_referencia==a_id])
     media_indice<- mean(df_clusters_espaciais$indicador_selecionado[df_clusters_espaciais$id_referencia==a_id])
-    #media_indice<- mean(clusters_espaciais_trabalho$indicador_1[clusters_espaciais_trabalho$id_referencia==a_id])
+    cv<- sd(df_clusters_espaciais$indicador_selecionado[df_clusters_espaciais$id_referencia==a_id])/
+      mean(df_clusters_espaciais$indicador_selecionado[df_clusters_espaciais$id_referencia==a_id])
 
 
     clusters_espaciais_trabalho %>%
@@ -193,7 +194,8 @@ agrupa_mapa_id_referencia<- function(.data, a_uf="", sinal=0, indicador){
              z_ii = z_ii_objeto,
              ii = ii_objeto,
              media_indice = media_indice,
-             multiplicador = 1+runif(n=1))
+             multiplicador = 1+runif(n=1),
+             cv =cv)
 
 
   })
@@ -278,6 +280,8 @@ clusters_indicador_1 %>%
 
 
 
+
+
 #opção de colorir usando o indicador
 
 ggplot() +
@@ -322,6 +326,8 @@ clusters_indicador_1 %>%
 
 #######Análises com clusters com dados menores que extremo
 
+
+###Indicador 1
 clusters_indicador_1_amplo<-
   mapa_municipios[-2260,] %>%
   inner_join(
@@ -348,6 +354,8 @@ clusters_indicador_1_amplo %>%
 
 
 
+
+##Indicador 2
 clusters_indicador_2_amplo<-
   mapa_municipios[-2260,] %>%
   inner_join(
@@ -374,7 +382,7 @@ mapa_municipios[-2260,] %>%
   gera_clusters_espaciais(nome_coluna = "indicador_2")%>%
   agrupa_mapa_id_referencia(sinal = 1, indicador = "indicador_2")
 
-
+dados_clusters_agrupados %>%
   ggplot() +
   geom_sf(data=estados, fill= NA) +
   geom_sf(aes(geometry = geometry,  fill= media_indice), color=NA,  show.legend = TRUE) +
@@ -385,8 +393,118 @@ mapa_municipios[-2260,] %>%
   )
 
 
+###Indicador 3
+mapa_municipios[-2260,] %>%
+  inner_join(
+    dados_capag_2022 %>%
+      filter(indicador_3<10) %>%
+      #filter_outliers("indicador_1", type="E") %>%
+      #filter(indicador_1!=0) %>%
+      #filter(nota_1 %in% c("A","B")) %>%
+      rename(code_muni = cod_ibge)
+  )%>%
+  gera_clusters_espaciais(nome_coluna = "indicador_3") %>%
+  agrupa_mapa_id_referencia(sinal = 1, indicador = "indicador_3") %>%
+  ggplot() +
+  geom_sf(data=estados, fill= NA) +
+  geom_sf(aes(geometry = geometry,  fill= media_indice), color=NA,  show.legend = TRUE) +
+  scale_fill_continuous_sequential(palette = "Heat 2")+
+  theme_void()+
+  theme(
+    panel.background = element_rect(fill = "black")
+  )
 
 
+#######Análises com clusters com dados menores que extremo com grágicos combinados
+
+
+##Clusters convergentes
+g1<-
+mapa_municipios[-2260,] %>%
+  inner_join(
+    dados_capag_2022 %>%
+      filter(indicador_3<10) %>%
+      #filter_outliers("indicador_1", type="E") %>%
+      #filter(indicador_1!=0) %>%
+      #filter(nota_1 %in% c("A","B")) %>%
+      rename(code_muni = cod_ibge)
+  )%>%
+  gera_clusters_espaciais(nome_coluna = "indicador_3") %>%
+  agrupa_mapa_id_referencia(sinal = 1, indicador = "indicador_3") %>%
+  ggplot() +
+  geom_sf(data=estados, fill= NA) +
+  geom_sf(aes(geometry = geometry,  fill= media_indice), color=NA,  show.legend = TRUE) +
+  scale_fill_continuous_sequential(palette = "Heat 2")+
+  theme_void()+
+  theme(
+    panel.background = element_rect(fill = "black")
+  )
+
+
+g2<-
+  mapa_municipios[-2260,] %>%
+  inner_join(
+    dados_capag_2022 %>%
+      filter(indicador_3<10) %>%
+      rename(code_muni = cod_ibge)
+  )%>%
+  gera_clusters_espaciais(nome_coluna = "indicador_3") %>%
+  agrupa_mapa_id_referencia(sinal = 1, indicador = "indicador_3") %>%
+  ggplot() +
+  geom_sf(data=estados, fill= NA) +
+  geom_sf(aes(geometry = geometry,  fill= cv), color=NA,  show.legend = TRUE) +
+  scale_fill_continuous_sequential(palette = "Heat 2")+
+  theme_void()+
+  theme(
+    panel.background = element_rect(fill = "black")
+  )
+
+g1+g2
+
+
+
+##Clusters divergentes
+g1<-
+  mapa_municipios[-2260,] %>%
+  inner_join(
+    dados_capag_2022 %>%
+      filter(indicador_3<10) %>%
+      #filter_outliers("indicador_1", type="E") %>%
+      #filter(indicador_1!=0) %>%
+      #filter(nota_1 %in% c("A","B")) %>%
+      rename(code_muni = cod_ibge)
+  )%>%
+  gera_clusters_espaciais(nome_coluna = "indicador_3") %>%
+  agrupa_mapa_id_referencia(sinal = -1, indicador = "indicador_3") %>%
+  ggplot() +
+  geom_sf(data=estados, fill= NA) +
+  geom_sf(aes(geometry = geometry,  fill= media_indice), color=NA,  show.legend = TRUE) +
+  scale_fill_continuous_sequential(palette = "Heat 2")+
+  theme_void()+
+  theme(
+    panel.background = element_rect(fill = "black")
+  )
+
+
+g2<-
+  mapa_municipios[-2260,] %>%
+  inner_join(
+    dados_capag_2022 %>%
+      filter(indicador_3<10) %>%
+      rename(code_muni = cod_ibge)
+  )%>%
+  gera_clusters_espaciais(nome_coluna = "indicador_3") %>%
+  agrupa_mapa_id_referencia(sinal = -1, indicador = "indicador_3") %>%
+  ggplot() +
+  geom_sf(data=estados, fill= NA) +
+  geom_sf(aes(geometry = geometry,  fill= cv), color=NA,  show.legend = TRUE) +
+  scale_fill_continuous_sequential(palette = "Heat 2")+
+  theme_void()+
+  theme(
+    panel.background = element_rect(fill = "black")
+  )
+
+g1+g2
 
 
 ##Teste para identificar coordenadas com problemas
@@ -401,6 +519,7 @@ centroides<-
            lat= sf::st_coordinates(sf::st_centroid(mapa_municipios$geom[i]))[,2])
 
   })
+
 
 
 
