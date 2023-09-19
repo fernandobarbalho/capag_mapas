@@ -8,27 +8,25 @@ library(patchwork)
 ##https://chat.openai.com/share/2c6582dd-e42b-45e4-9ba1-91f9b13c14ed
 
 
-gera_clusters_espaciais<- function(.data){
+gera_clusters_espaciais<- function(.data, nome_coluna){
 
 
 
   # select column to work with
-  s <- subset(.data, select=c("indicador_1"))
+  s <- subset(.data, select=nome_coluna)
+
+  names(s)[1]<-"indicador"
 
 
-  # check data skewness
-  hist(s$indicador_1, main=NULL)
-  # check for outliers
-  boxplot(s$indicador_1, horizontal = TRUE)
 
   s %>%
     ggplot() +
-    geom_histogram(aes(x=indicador_1),color="white")
+    geom_histogram(aes(x=!!sym(nome_coluna)),color="white")
 
   s %>%
-    mutate(tipo_indicador= "indicador 1") %>%
+    mutate(tipo_indicador= nome_coluna) %>%
     ggplot() +
-    geom_boxplot(aes(x=tipo_indicador, y=indicador_1))
+    geom_boxplot(aes(x=tipo_indicador, y=!!sym(nome_coluna)))
 
 
 
@@ -39,41 +37,40 @@ gera_clusters_espaciais<- function(.data){
   lw <- nb2listw(nb, style="W", zero.policy=TRUE) # Row-standardized weights
 
 
-  # compute neighbor average
-  inc.lag <- lag.listw(lw, s$indicador_1, zero.policy=TRUE)
+  # # compute neighbor average
+  # inc.lag <- lag.listw(lw, s$indicador_1, zero.policy=TRUE)
+  #
+  # # plot polygons vs lags
+  # plot(inc.lag ~ s$indicador_1, pch=16, asp=1)
+  # M1 <- lm(inc.lag ~ s$indicador_1)
+  # abline(M1, col="blue")
+  #
+  # # access Moran's coeff
+  # coef(M1)[2]
+  #
+  # # calculating Moran coeff with one line
+  # I <- moran(s$indicador_1, lw, length(nb), Szero(lw), zero.policy=TRUE)[1]
+  #
+  # I
+  #
+  #
+  #
+  #
+  # # hypothesis test with moran.test function
+  # moran.test(s$indicador_1,lw, alternative="greater", zero.policy=TRUE)
+  #
+  # # using Monte-Carlo simulation
+  # MC<- moran.mc(s$indicador_1, lw, nsim=999, alternative="greater", zero.policy=TRUE)
+  #
+  # # View results (including p-value)
+  # MC# plot Null distribution
+  # plot(MC)
 
-  # plot polygons vs lags
-  plot(inc.lag ~ s$indicador_1, pch=16, asp=1)
-  M1 <- lm(inc.lag ~ s$indicador_1)
-  abline(M1, col="blue")
-
-  # access Moran's coeff
-  coef(M1)[2]
-
-  # calculating Moran coeff with one line
-  I <- moran(s$indicador_1, lw, length(nb), Szero(lw), zero.policy=TRUE)[1]
-
-  I
 
 
-
-
-  # hypothesis test with moran.test function
-  moran.test(s$indicador_1,lw, alternative="greater", zero.policy=TRUE)
-
-  # using Monte-Carlo simulation
-  MC<- moran.mc(s$indicador_1, lw, nsim=999, alternative="greater", zero.policy=TRUE)
-
-  # View results (including p-value)
-  MC# plot Null distribution
-  plot(MC)
-
-
-  lisa<- spdep::localmoran(s$indicador_1, lw, zero.policy=TRUE)
+  lisa<- spdep::localmoran(s$indicador, lw, zero.policy=TRUE)
 
   df_lisa<- as_tibble(lisa)
-
-  names(df_lisa)
 
 
 
@@ -134,23 +131,17 @@ gera_clusters_espaciais<- function(.data){
 }
 
 
-clusters_indicador_1<-
-  mapa_municipios[-2260,] %>%
-  inner_join(
-    dados_capag_2022 %>%
-      filter_outliers("indicador_1", type="E") %>%
-      #filter(indicador_1!=0) %>%
-      #filter(nota_1 %in% c("A","B")) %>%
-      rename(code_muni = cod_ibge)
-  )%>%
-  gera_clusters_espaciais()
 
 
-agrupa_mapa_id_referencia<- function(.data, a_uf="", sinal=0){
+agrupa_mapa_id_referencia<- function(.data, a_uf="", sinal=0, indicador){
 
 
   clusters_espaciais_trabalho<-
     .data[["df_clusters_espaciais"]]
+
+
+
+
 
   if (a_uf!=""){
     clusters_espaciais_trabalho <-
@@ -167,15 +158,30 @@ agrupa_mapa_id_referencia<- function(.data, a_uf="", sinal=0){
   }
 
 
+
+
   ids_referencia<- unique(clusters_espaciais_trabalho$id_referencia)
   vizinhos<-.data$lw$neighbours
+
+  position<- which(names(clusters_espaciais_trabalho) == indicador)
+
+
+
+  df_clusters_espaciais<- as_tibble(clusters_espaciais_trabalho)
+
+  names(df_clusters_espaciais)[position] <- "indicador_selecionado"
+
+
+
 
   purrr::map_dfr(ids_referencia, function(a_id){
 
 
+
     z_ii_objeto<- unique(clusters_espaciais_trabalho$z_ii[clusters_espaciais_trabalho$id_referencia==a_id])
     ii_objeto<- unique(clusters_espaciais_trabalho$ii[clusters_espaciais_trabalho$id_referencia==a_id])
-    media_indice<- mean(clusters_espaciais_trabalho$indicador_1[clusters_espaciais_trabalho$id_referencia==a_id])
+    media_indice<- mean(df_clusters_espaciais$indicador_selecionado[df_clusters_espaciais$id_referencia==a_id])
+    #media_indice<- mean(clusters_espaciais_trabalho$indicador_1[clusters_espaciais_trabalho$id_referencia==a_id])
 
 
     clusters_espaciais_trabalho %>%
@@ -197,6 +203,18 @@ agrupa_mapa_id_referencia<- function(.data, a_uf="", sinal=0){
 
 
 
+#######Análises com clusters com dados no intervalo interquartil
+
+clusters_indicador_1<-
+  mapa_municipios[-2260,] %>%
+  inner_join(
+    dados_capag_2022 %>%
+      filter_outliers("indicador_1", type="E") %>%
+      #filter(indicador_1!=0) %>%
+      #filter(nota_1 %in% c("A","B")) %>%
+      rename(code_muni = cod_ibge)
+  )%>%
+  gera_clusters_espaciais(nome_coluna = "indicador_1")
 
 
 
@@ -299,6 +317,75 @@ clusters_indicador_1 %>%
   theme(
     panel.background = element_rect(fill = "black")
   )
+
+
+
+#######Análises com clusters com dados menores que extremo
+
+clusters_indicador_1_amplo<-
+  mapa_municipios[-2260,] %>%
+  inner_join(
+    dados_capag_2022 %>%
+      filter(indicador_1<10) %>%
+      #filter_outliers("indicador_1", type="E") %>%
+      #filter(indicador_1!=0) %>%
+      #filter(nota_1 %in% c("A","B")) %>%
+      rename(code_muni = cod_ibge)
+  )%>%
+  gera_clusters_espaciais(nome_coluna = "indicador_1")
+
+
+clusters_indicador_1_amplo %>%
+  agrupa_mapa_id_referencia(sinal = 1) %>%
+  ggplot() +
+  geom_sf(data=estados, fill= NA) +
+  geom_sf(aes(geometry = geometry,  fill= media_indice), color=NA,  show.legend = TRUE) +
+  scale_fill_continuous_sequential(palette = "Heat 2")+
+  theme_void()+
+  theme(
+    panel.background = element_rect(fill = "black")
+  )
+
+
+
+clusters_indicador_2_amplo<-
+  mapa_municipios[-2260,] %>%
+  inner_join(
+    dados_capag_2022 %>%
+      filter(indicador_2<10) %>%
+      #filter_outliers("indicador_1", type="E") %>%
+      #filter(indicador_1!=0) %>%
+      #filter(nota_1 %in% c("A","B")) %>%
+      rename(code_muni = cod_ibge)
+  )%>%
+  gera_clusters_espaciais(nome_coluna = "indicador_2")
+
+
+dados_clusters_agrupados<-
+mapa_municipios[-2260,] %>%
+  inner_join(
+    dados_capag_2022 %>%
+      filter(indicador_2<10) %>%
+      #filter_outliers("indicador_1", type="E") %>%
+      #filter(indicador_1!=0) %>%
+      #filter(nota_1 %in% c("A","B")) %>%
+      rename(code_muni = cod_ibge)
+  )%>%
+  gera_clusters_espaciais(nome_coluna = "indicador_2")%>%
+  agrupa_mapa_id_referencia(sinal = 1, indicador = "indicador_2")
+
+
+  ggplot() +
+  geom_sf(data=estados, fill= NA) +
+  geom_sf(aes(geometry = geometry,  fill= media_indice), color=NA,  show.legend = TRUE) +
+  scale_fill_continuous_sequential(palette = "Heat 2")+
+  theme_void()+
+  theme(
+    panel.background = element_rect(fill = "black")
+  )
+
+
+
 
 
 
