@@ -418,7 +418,97 @@ mapa_municipios[-2260,] %>%
 #######Análises com clusters com dados menores que extremo com grágicos combinados
 
 
-##Clusters convergentes
+##Clusters convergentes indicador 1
+g1<-
+  mapa_municipios[-2260,] %>%
+  inner_join(
+    dados_capag_2022 %>%
+      filter(indicador_1<10) %>%
+      #filter_outliers("indicador_1", type="E") %>%
+      #filter(indicador_1!=0) %>%
+      #filter(nota_1 %in% c("A","B")) %>%
+      rename(code_muni = cod_ibge)
+  )%>%
+  gera_clusters_espaciais(nome_coluna = "indicador_1") %>%
+  agrupa_mapa_id_referencia(sinal = 1, indicador = "indicador_1") %>%
+  ggplot() +
+  geom_sf(data=estados, fill= NA) +
+  geom_sf(aes(geometry = geometry,  fill= media_indice), color=NA,  show.legend = TRUE) +
+  scale_fill_continuous_sequential(palette = "Heat 2")+
+  theme_void()+
+  theme(
+    panel.background = element_rect(fill = "black")
+  )
+
+
+g2<-
+  mapa_municipios[-2260,] %>%
+  inner_join(
+    dados_capag_2022 %>%
+      filter(indicador_1<10) %>%
+      rename(code_muni = cod_ibge)
+  )%>%
+  gera_clusters_espaciais(nome_coluna = "indicador_1") %>%
+  agrupa_mapa_id_referencia(sinal = 1, indicador = "indicador_1") %>%
+  ggplot() +
+  geom_sf(data=estados, fill= NA) +
+  geom_sf(aes(geometry = geometry,  fill= cv), color=NA,  show.legend = TRUE) +
+  scale_fill_continuous_sequential(palette = "Heat 2")+
+  theme_void()+
+  theme(
+    panel.background = element_rect(fill = "black")
+  )
+
+g1+g2
+
+
+
+##Clusters divergentes indicador 1
+g1<-
+  mapa_municipios[-2260,] %>%
+  inner_join(
+    dados_capag_2022 %>%
+      filter(indicador_3<10) %>%
+      #filter_outliers("indicador_1", type="E") %>%
+      #filter(indicador_1!=0) %>%
+      #filter(nota_1 %in% c("A","B")) %>%
+      rename(code_muni = cod_ibge)
+  )%>%
+  gera_clusters_espaciais(nome_coluna = "indicador_3") %>%
+  agrupa_mapa_id_referencia(sinal = -1, indicador = "indicador_3") %>%
+  ggplot() +
+  geom_sf(data=estados, fill= NA) +
+  geom_sf(aes(geometry = geometry,  fill= media_indice), color=NA,  show.legend = TRUE) +
+  scale_fill_continuous_sequential(palette = "Heat 2")+
+  theme_void()+
+  theme(
+    panel.background = element_rect(fill = "black")
+  )
+
+
+g2<-
+  mapa_municipios[-2260,] %>%
+  inner_join(
+    dados_capag_2022 %>%
+      filter(indicador_3<10) %>%
+      rename(code_muni = cod_ibge)
+  )%>%
+  gera_clusters_espaciais(nome_coluna = "indicador_3") %>%
+  agrupa_mapa_id_referencia(sinal = -1, indicador = "indicador_3") %>%
+  ggplot() +
+  geom_sf(data=estados, fill= NA) +
+  geom_sf(aes(geometry = geometry,  fill= cv), color=NA,  show.legend = TRUE) +
+  scale_fill_continuous_sequential(palette = "Heat 2")+
+  theme_void()+
+  theme(
+    panel.background = element_rect(fill = "black")
+  )
+
+g1+g2
+
+
+
+##Clusters convergentes indicador 3
 g1<-
 mapa_municipios[-2260,] %>%
   inner_join(
@@ -463,7 +553,7 @@ g1+g2
 
 
 
-##Clusters divergentes
+##Clusters divergentes indicador 3
 g1<-
   mapa_municipios[-2260,] %>%
   inner_join(
