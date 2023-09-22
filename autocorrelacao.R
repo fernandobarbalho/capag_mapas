@@ -99,13 +99,16 @@ gera_clusters_espaciais<- function(.data, nome_coluna){
   id_central<-
     unique(df_vizinhos$id_referencia)
 
-
+  ###Seleciona os clusters em que o id_referencia se mantém como referência do próprio cluster
   clusters_selecionado<-
     df_vizinhos %>%
     filter(id %in% id_central) %>%
     group_by(id) %>%
     filter(abs(z_ii) == max(abs(z_ii))) %>%
-    ungroup()
+    ungroup() %>%
+    filter(id_referencia == id)
+
+
 
   id_referencia_selecao<- unique(clusters_selecionado$id_referencia)
 
@@ -116,14 +119,19 @@ gera_clusters_espaciais<- function(.data, nome_coluna){
     filter(abs(z_ii) == max(abs(z_ii))) %>%
     ungroup()
 
+  ids_referencias_finais<-
+    (vizinhos_selecao %>%
+       summarise(.by = id_referencia,
+                 quantidade = n()) %>%
+       filter(quantidade >=2))$id_referencia
 
 
   df_clusters_espaciais<-
     .data %>%
     mutate(id = row_number())%>%
     inner_join(
-      vizinhos_selecao
-
+      vizinhos_selecao %>%
+        filter(id_referencia %in% ids_referencias_finais )
     )
 
   return(list(df_clusters_espaciais= df_clusters_espaciais,lw=lw))
@@ -180,12 +188,9 @@ agrupa_mapa_id_referencia<- function(.data, a_uf="", sinal=0, indicador){
 
     z_ii_objeto<- unique(clusters_espaciais_trabalho$z_ii[clusters_espaciais_trabalho$id_referencia==a_id])
     ii_objeto<- unique(clusters_espaciais_trabalho$ii[clusters_espaciais_trabalho$id_referencia==a_id])
-    media_indice<- mean(c(df_clusters_espaciais$indicador_selecionado[df_clusters_espaciais$id==a_id],
-                          df_clusters_espaciais$indicador_selecionado[df_clusters_espaciais$id_referencia==a_id]))
-    cv<- sd(c(df_clusters_espaciais$indicador_selecionado[df_clusters_espaciais$id==a_id],
-              df_clusters_espaciais$indicador_selecionado[df_clusters_espaciais$id_referencia==a_id]))/
-      mean(c(df_clusters_espaciais$indicador_selecionado[df_clusters_espaciais$id==a_id],
-             df_clusters_espaciais$indicador_selecionado[df_clusters_espaciais$id_referencia==a_id]))
+    media_indice<- mean(df_clusters_espaciais$indicador_selecionado[df_clusters_espaciais$id_referencia==a_id])
+    cv<- sd(df_clusters_espaciais$indicador_selecionado[df_clusters_espaciais$id_referencia==a_id])/
+        mean(df_clusters_espaciais$indicador_selecionado[df_clusters_espaciais$id_referencia==a_id])
 
 
     clusters_espaciais_trabalho %>%
@@ -466,6 +471,8 @@ g1+g2
 
 
 
+
+
 ##Clusters divergentes indicador 1
 g1<-
   mapa_municipios[-2260,] %>%
@@ -509,6 +516,14 @@ g2<-
 
 g1+g2
 
+fab<-mapa_municipios[-2260,] %>%
+  inner_join(
+    dados_capag_2022 %>%
+      filter(indicador_1<10) %>%
+      rename(code_muni = cod_ibge)
+  )%>%
+  gera_clusters_espaciais(nome_coluna = "indicador_1") %>%
+  agrupa_mapa_id_referencia(sinal = -1, indicador = "indicador_1")
 
 
 ##Clusters convergentes indicador 3
