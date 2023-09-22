@@ -156,7 +156,7 @@ dados_capag_2022 %>%
 
 
 dados_capag_2022 %>%
-  filter_outliers("indicador_3") %>%
+  #filter_outliers("indicador_3") %>%
   gera_box_plot_indicador("3")
 
 

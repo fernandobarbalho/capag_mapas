@@ -180,9 +180,12 @@ agrupa_mapa_id_referencia<- function(.data, a_uf="", sinal=0, indicador){
 
     z_ii_objeto<- unique(clusters_espaciais_trabalho$z_ii[clusters_espaciais_trabalho$id_referencia==a_id])
     ii_objeto<- unique(clusters_espaciais_trabalho$ii[clusters_espaciais_trabalho$id_referencia==a_id])
-    media_indice<- mean(df_clusters_espaciais$indicador_selecionado[df_clusters_espaciais$id_referencia==a_id])
-    cv<- sd(df_clusters_espaciais$indicador_selecionado[df_clusters_espaciais$id_referencia==a_id])/
-      mean(df_clusters_espaciais$indicador_selecionado[df_clusters_espaciais$id_referencia==a_id])
+    media_indice<- mean(c(df_clusters_espaciais$indicador_selecionado[df_clusters_espaciais$id==a_id],
+                          df_clusters_espaciais$indicador_selecionado[df_clusters_espaciais$id_referencia==a_id]))
+    cv<- sd(c(df_clusters_espaciais$indicador_selecionado[df_clusters_espaciais$id==a_id],
+              df_clusters_espaciais$indicador_selecionado[df_clusters_espaciais$id_referencia==a_id]))/
+      mean(c(df_clusters_espaciais$indicador_selecionado[df_clusters_espaciais$id==a_id],
+             df_clusters_espaciais$indicador_selecionado[df_clusters_espaciais$id_referencia==a_id]))
 
 
     clusters_espaciais_trabalho %>%
@@ -595,6 +598,17 @@ g2<-
   )
 
 g1+g2
+
+
+
+fab<-mapa_municipios[-2260,] %>%
+  inner_join(
+    dados_capag_2022 %>%
+      filter(indicador_3<10) %>%
+      rename(code_muni = cod_ibge)
+  )%>%
+  gera_clusters_espaciais(nome_coluna = "indicador_3") %>%
+  agrupa_mapa_id_referencia(sinal = -1, indicador = "indicador_3")
 
 
 ##Teste para identificar coordenadas com problemas
