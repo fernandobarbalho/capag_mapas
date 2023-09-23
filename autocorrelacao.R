@@ -427,18 +427,64 @@ mapa_municipios[-2260,] %>%
 
 
 ##Clusters convergentes indicador 1
-g1<-
+
+
+#Estatísticas descritiva dos clusters
+
+clusters_espaciais_1<-
   mapa_municipios[-2260,] %>%
   inner_join(
     dados_capag_2022 %>%
       filter(indicador_1<10) %>%
-      #filter_outliers("indicador_1", type="E") %>%
-      #filter(indicador_1!=0) %>%
-      #filter(nota_1 %in% c("A","B")) %>%
       rename(code_muni = cod_ibge)
   )%>%
-  gera_clusters_espaciais(nome_coluna = "indicador_1") %>%
-  agrupa_mapa_id_referencia(sinal = 1, indicador = "indicador_1") %>%
+  gera_clusters_espaciais(nome_coluna = "indicador_1")
+
+
+
+df_mapa_agrupado_convergentes_1<-
+  clusters_espaciais_1%>%
+  agrupa_mapa_id_referencia(sinal = 1, indicador = "indicador_1")
+
+
+
+
+##histogramas clusters convergentes
+
+
+
+
+df_mapa_agrupado_convergentes_1 %>%
+  ggplot() +
+  geom_histogram(aes(x=media_indice), color = "white")
+
+
+df_mapa_agrupado_convergentes_1 %>%
+  ggplot() +
+  geom_histogram(aes(x=cv), color = "white")
+
+
+##box-plot clusters convergentes
+g1<- df_mapa_agrupado_convergentes_1 %>%
+  mutate(grupo  = "convergente 1") %>%
+  ggplot() +
+  geom_boxplot(aes(x=grupo, y=media_indice))
+
+
+g2<- df_mapa_agrupado_convergentes_1 %>%
+  mutate(grupo  = "convergente 1") %>%
+  ggplot() +
+  geom_boxplot(aes(x=grupo, y=cv))
+
+
+
+
+
+
+##mapas
+
+m1<-
+df_mapa_agrupado_convergentes_1 %>%
   ggplot() +
   geom_sf(data=estados, fill= NA) +
   geom_sf(aes(geometry = geometry,  fill= media_indice), color=NA,  show.legend = TRUE) +
@@ -449,15 +495,8 @@ g1<-
   )
 
 
-g2<-
-  mapa_municipios[-2260,] %>%
-  inner_join(
-    dados_capag_2022 %>%
-      filter(indicador_1<10) %>%
-      rename(code_muni = cod_ibge)
-  )%>%
-  gera_clusters_espaciais(nome_coluna = "indicador_1") %>%
-  agrupa_mapa_id_referencia(sinal = 1, indicador = "indicador_1") %>%
+m2<-
+  df_mapa_agrupado_convergentes_1 %>%
   ggplot() +
   geom_sf(data=estados, fill= NA) +
   geom_sf(aes(geometry = geometry,  fill= cv), color=NA,  show.legend = TRUE) +
@@ -467,25 +506,46 @@ g2<-
     panel.background = element_rect(fill = "black")
   )
 
-g1+g2
+(g1+g2) / (m1+m2)
 
 
 
 
 
 ##Clusters divergentes indicador 1
-g1<-
-  mapa_municipios[-2260,] %>%
-  inner_join(
-    dados_capag_2022 %>%
-      filter(indicador_3<10) %>%
-      #filter_outliers("indicador_1", type="E") %>%
-      #filter(indicador_1!=0) %>%
-      #filter(nota_1 %in% c("A","B")) %>%
-      rename(code_muni = cod_ibge)
-  )%>%
-  gera_clusters_espaciais(nome_coluna = "indicador_3") %>%
-  agrupa_mapa_id_referencia(sinal = -1, indicador = "indicador_3") %>%
+
+df_mapa_agrupado_divergentes_1<-
+  clusters_espaciais_1%>%
+  agrupa_mapa_id_referencia(sinal = -1, indicador = "indicador_1")
+
+##Histogramas clusters divergentes
+
+df_mapa_agrupado_divergentes_1 %>%
+  ggplot() +
+  geom_histogram(aes(x=media_indice), color = "white")
+
+
+df_mapa_agrupado_divergentes_1 %>%
+  ggplot() +
+  geom_histogram(aes(x=cv), color = "white")
+
+
+##box-plot clusters divergentes
+g1<- df_mapa_agrupado_divergentes_1 %>%
+  mutate(grupo  = "divergente 1") %>%
+  ggplot() +
+  geom_boxplot(aes(x=grupo, y=media_indice))
+
+
+g2<-df_mapa_agrupado_divergentes_1 %>%
+  mutate(grupo  = "divergente 1") %>%
+  ggplot() +
+  geom_boxplot(aes(x=grupo, y=cv))
+
+
+
+m1<-
+  df_mapa_agrupado_divergentes_1 %>%
   ggplot() +
   geom_sf(data=estados, fill= NA) +
   geom_sf(aes(geometry = geometry,  fill= media_indice), color=NA,  show.legend = TRUE) +
@@ -496,15 +556,8 @@ g1<-
   )
 
 
-g2<-
-  mapa_municipios[-2260,] %>%
-  inner_join(
-    dados_capag_2022 %>%
-      filter(indicador_3<10) %>%
-      rename(code_muni = cod_ibge)
-  )%>%
-  gera_clusters_espaciais(nome_coluna = "indicador_3") %>%
-  agrupa_mapa_id_referencia(sinal = -1, indicador = "indicador_3") %>%
+m2<-
+  df_mapa_agrupado_divergentes_1 %>%
   ggplot() +
   geom_sf(data=estados, fill= NA) +
   geom_sf(aes(geometry = geometry,  fill= cv), color=NA,  show.legend = TRUE) +
@@ -514,31 +567,209 @@ g2<-
     panel.background = element_rect(fill = "black")
   )
 
-g1+g2
+(g1+g2)/(m1+m2)
 
-fab<-mapa_municipios[-2260,] %>%
+
+##Clusters convergentes indicador 2
+
+
+#Estatísticas descritiva dos clusters
+
+clusters_espaciais_2<-
+  mapa_municipios[-2260,] %>%
   inner_join(
     dados_capag_2022 %>%
-      filter(indicador_1<10) %>%
+      filter(indicador_2<10) %>%
       rename(code_muni = cod_ibge)
   )%>%
-  gera_clusters_espaciais(nome_coluna = "indicador_1") %>%
-  agrupa_mapa_id_referencia(sinal = -1, indicador = "indicador_1")
+  gera_clusters_espaciais(nome_coluna = "indicador_2")
+
+
+
+df_mapa_agrupado_convergentes_2<-
+  clusters_espaciais_2%>%
+  agrupa_mapa_id_referencia(sinal = 1, indicador = "indicador_2")
+
+
+
+
+##histogramas clusters convergentes
+
+
+
+
+df_mapa_agrupado_convergentes_2 %>%
+  ggplot() +
+  geom_histogram(aes(x=media_indice), color = "white")
+
+
+df_mapa_agrupado_convergentes_2 %>%
+  ggplot() +
+  geom_histogram(aes(x=cv), color = "white")
+
+
+##box-plot clusters convergentes
+g1<- df_mapa_agrupado_convergentes_2 %>%
+  mutate(grupo  = "convergente 2") %>%
+  ggplot() +
+  geom_boxplot(aes(x=grupo, y=media_indice))
+
+
+g2<- df_mapa_agrupado_convergentes_2 %>%
+  mutate(grupo  = "convergente 2") %>%
+  ggplot() +
+  geom_boxplot(aes(x=grupo, y=cv))
+
+
+
+
+
+
+##mapas
+
+m1<-
+  df_mapa_agrupado_convergentes_2 %>%
+  ggplot() +
+  geom_sf(data=estados, fill= NA) +
+  geom_sf(aes(geometry = geometry,  fill= media_indice), color=NA,  show.legend = TRUE) +
+  scale_fill_continuous_sequential(palette = "Heat 2")+
+  theme_void()+
+  theme(
+    panel.background = element_rect(fill = "black")
+  )
+
+
+m2<-
+  df_mapa_agrupado_convergentes_2 %>%
+  ggplot() +
+  geom_sf(data=estados, fill= NA) +
+  geom_sf(aes(geometry = geometry,  fill= cv), color=NA,  show.legend = TRUE) +
+  scale_fill_continuous_sequential(palette = "Heat 2")+
+  theme_void()+
+  theme(
+    panel.background = element_rect(fill = "black")
+  )
+
+(g1+g2) / (m1+m2)
+
+
+
+
+
+##Clusters divergentes indicador 2
+
+df_mapa_agrupado_divergentes_2<-
+  clusters_espaciais_2%>%
+  agrupa_mapa_id_referencia(sinal = -1, indicador = "indicador_2")
+
+##Histogramas clusters divergentes
+
+df_mapa_agrupado_divergentes_2 %>%
+  ggplot() +
+  geom_histogram(aes(x=media_indice), color = "white")
+
+
+df_mapa_agrupado_divergentes_2 %>%
+  ggplot() +
+  geom_histogram(aes(x=cv), color = "white")
+
+
+##box-plot clusters divergentes
+g1<- df_mapa_agrupado_divergentes_2 %>%
+  mutate(grupo  = "divergente 2") %>%
+  ggplot() +
+  geom_boxplot(aes(x=grupo, y=media_indice))
+
+
+g2<-df_mapa_agrupado_divergentes_2 %>%
+  mutate(grupo  = "divergente 2") %>%
+  ggplot() +
+  geom_boxplot(aes(x=grupo, y=cv))
+
+
+
+m1<-
+  df_mapa_agrupado_divergentes_2 %>%
+  ggplot() +
+  geom_sf(data=estados, fill= NA) +
+  geom_sf(aes(geometry = geometry,  fill= media_indice), color=NA,  show.legend = TRUE) +
+  scale_fill_continuous_sequential(palette = "Heat 2")+
+  theme_void()+
+  theme(
+    panel.background = element_rect(fill = "black")
+  )
+
+
+m2<-
+  df_mapa_agrupado_divergentes_2 %>%
+  ggplot() +
+  geom_sf(data=estados, fill= NA) +
+  geom_sf(aes(geometry = geometry,  fill= cv), color=NA,  show.legend = TRUE) +
+  scale_fill_continuous_sequential(palette = "Heat 2")+
+  theme_void()+
+  theme(
+    panel.background = element_rect(fill = "black")
+  )
+
+(g1+g2)/(m1+m2)
+
 
 
 ##Clusters convergentes indicador 3
-g1<-
-mapa_municipios[-2260,] %>%
+
+#Estatísticas descritiva dos clusters
+
+clusters_espaciais_3<-
+  mapa_municipios[-2260,] %>%
   inner_join(
     dados_capag_2022 %>%
       filter(indicador_3<10) %>%
-      #filter_outliers("indicador_1", type="E") %>%
-      #filter(indicador_1!=0) %>%
-      #filter(nota_1 %in% c("A","B")) %>%
       rename(code_muni = cod_ibge)
   )%>%
-  gera_clusters_espaciais(nome_coluna = "indicador_3") %>%
-  agrupa_mapa_id_referencia(sinal = 1, indicador = "indicador_3") %>%
+  gera_clusters_espaciais(nome_coluna = "indicador_3")
+
+
+
+df_mapa_agrupado_convergentes_3<-
+  clusters_espaciais_3%>%
+  agrupa_mapa_id_referencia(sinal = 1, indicador = "indicador_3")
+
+
+##histogramas clusters convergentes
+
+
+df_mapa_agrupado_convergentes_3 %>%
+  ggplot() +
+  geom_histogram(aes(x=media_indice), color = "white")
+
+
+df_mapa_agrupado_convergentes_3 %>%
+  ggplot() +
+  geom_histogram(aes(x=cv), color = "white")
+
+
+##box-plot clusters convergentes
+g1<- df_mapa_agrupado_convergentes_3 %>%
+  mutate(grupo  = "convergente 3") %>%
+  ggplot() +
+  geom_boxplot(aes(x=grupo, y=media_indice))
+
+
+g2<- df_mapa_agrupado_convergentes_3 %>%
+  mutate(grupo  = "convergente 3") %>%
+  ggplot() +
+  geom_boxplot(aes(x=grupo, y=cv))
+
+
+
+
+
+
+##mapas
+
+
+m1<-
+  df_mapa_agrupado_convergentes_3 %>%
   ggplot() +
   geom_sf(data=estados, fill= NA) +
   geom_sf(aes(geometry = geometry,  fill= media_indice), color=NA,  show.legend = TRUE) +
@@ -549,15 +780,8 @@ mapa_municipios[-2260,] %>%
   )
 
 
-g2<-
-  mapa_municipios[-2260,] %>%
-  inner_join(
-    dados_capag_2022 %>%
-      filter(indicador_3<10) %>%
-      rename(code_muni = cod_ibge)
-  )%>%
-  gera_clusters_espaciais(nome_coluna = "indicador_3") %>%
-  agrupa_mapa_id_referencia(sinal = 1, indicador = "indicador_3") %>%
+m2<-
+  df_mapa_agrupado_convergentes_3 %>%
   ggplot() +
   geom_sf(data=estados, fill= NA) +
   geom_sf(aes(geometry = geometry,  fill= cv), color=NA,  show.legend = TRUE) +
@@ -567,23 +791,45 @@ g2<-
     panel.background = element_rect(fill = "black")
   )
 
-g1+g2
+(g1+g2)/(m1+m2)
 
 
 
 ##Clusters divergentes indicador 3
-g1<-
-  mapa_municipios[-2260,] %>%
-  inner_join(
-    dados_capag_2022 %>%
-      filter(indicador_3<10) %>%
-      #filter_outliers("indicador_1", type="E") %>%
-      #filter(indicador_1!=0) %>%
-      #filter(nota_1 %in% c("A","B")) %>%
-      rename(code_muni = cod_ibge)
-  )%>%
-  gera_clusters_espaciais(nome_coluna = "indicador_3") %>%
-  agrupa_mapa_id_referencia(sinal = -1, indicador = "indicador_3") %>%
+
+df_mapa_agrupado_divergentes_3<-
+  clusters_espaciais_3%>%
+  agrupa_mapa_id_referencia(sinal = -1, indicador = "indicador_3")
+
+
+##histogramas clusters divergentes
+
+
+df_mapa_agrupado_divergentes_3 %>%
+  ggplot() +
+  geom_histogram(aes(x=media_indice), color = "white")
+
+
+df_mapa_agrupado_divergentes_3 %>%
+  ggplot() +
+  geom_histogram(aes(x=cv), color = "white")
+
+
+##box-plot clusters convergentes
+g1<- df_mapa_agrupado_divergentes_3 %>%
+  mutate(grupo  = "divergente 3") %>%
+  ggplot() +
+  geom_boxplot(aes(x=grupo, y=media_indice))
+
+
+g2<- df_mapa_agrupado_divergentes_3 %>%
+  mutate(grupo  = "divergente 3") %>%
+  ggplot() +
+  geom_boxplot(aes(x=grupo, y=cv))
+
+
+m1<-
+  df_mapa_agrupado_divergentes_3 %>%
   ggplot() +
   geom_sf(data=estados, fill= NA) +
   geom_sf(aes(geometry = geometry,  fill= media_indice), color=NA,  show.legend = TRUE) +
@@ -594,15 +840,8 @@ g1<-
   )
 
 
-g2<-
-  mapa_municipios[-2260,] %>%
-  inner_join(
-    dados_capag_2022 %>%
-      filter(indicador_3<10) %>%
-      rename(code_muni = cod_ibge)
-  )%>%
-  gera_clusters_espaciais(nome_coluna = "indicador_3") %>%
-  agrupa_mapa_id_referencia(sinal = -1, indicador = "indicador_3") %>%
+m2<-
+  df_mapa_agrupado_divergentes_3 %>%
   ggplot() +
   geom_sf(data=estados, fill= NA) +
   geom_sf(aes(geometry = geometry,  fill= cv), color=NA,  show.legend = TRUE) +
@@ -612,18 +851,10 @@ g2<-
     panel.background = element_rect(fill = "black")
   )
 
-g1+g2
+(g1+g2)/(m1+m2)
 
 
 
-fab<-mapa_municipios[-2260,] %>%
-  inner_join(
-    dados_capag_2022 %>%
-      filter(indicador_3<10) %>%
-      rename(code_muni = cod_ibge)
-  )%>%
-  gera_clusters_espaciais(nome_coluna = "indicador_3") %>%
-  agrupa_mapa_id_referencia(sinal = -1, indicador = "indicador_3")
 
 
 ##Teste para identificar coordenadas com problemas
