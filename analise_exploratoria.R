@@ -293,7 +293,8 @@ residuo_teste %>%
   mutate(ordem = fct_reorder(ordem, rank, .desc=TRUE) ) %>%
   ggplot(aes(x=n,y=ordem, fill= capag_oficial))+
   geom_col() +
-  geom_text(aes(label= uf))
+  geom_text(aes(label= uf)) +
+  geom_vline(xintercept = c(-2,2))
 
 
 ####Análises com REGIC

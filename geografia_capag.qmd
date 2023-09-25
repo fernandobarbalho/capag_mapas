@@ -7,7 +7,197 @@ editor: visual
 
 ## Distribuição nos estados
 
-Quarto enables you to weave together content and executable code into a finished presentation. To learn more about Quarto presentations see <https://quarto.org/docs/presentations/>.
+```{r}
+library(tidyverse)
+library(colorspace)
+library(patchwork)
+
+
+mapa_municipios<- rio::import("mapa_municipios.RDS")
+sedes_municipios<- rio::import("sedes_municipios.RDS")
+estados<- rio::import("estados.RDS")
+brasil<- rio::import("brasil.RDS")
+ibge2022<- rio::import("ibge2022.RDS")
+dados_capag_2022 <- rio::import("dados_capag_2022.RDS")
+
+
+### Testes de chi quadrado
+
+teste_chi<-
+chisq.test(dados_capag_2022$uf, dados_capag_2022$capag_oficial, simulate.p.value = TRUE)
+
+residuo_teste<-
+as_tibble(teste_chi[["stdres"]])
+
+names(residuo_teste) <- c("uf","capag_oficial","n")
+
+residuo_teste %>%
+  filter(n<=-2 | n>=2) %>%   
+  mutate(rank = rank(-abs(n))) %>%
+  mutate(ordem = as.factor(rank)) %>%
+  mutate(ordem = fct_reorder(ordem, rank, .desc=TRUE) ) %>%
+  ggplot(aes(x=n,y=ordem, fill= capag_oficial), color = "black")+
+  geom_col() +
+  geom_vline(xintercept = c(-2,2), color = "white") +
+  scale_fill_discrete_qualitative("Pastel 1")+
+  theme_light() +
+  theme(
+    #text = element_text(size=20),
+    panel.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    axis.text.y = element_blank(),
+    legend.key = element_rect(fill = "black")
+    
+  ) +
+  labs(title = "Resíduos relevantes",
+       fill = "Nota CAPAG")
+
+
+```
+
+## Distribuição nos estados - CAPAG A
+
+```{r}
+residuo_teste %>%
+  filter(capag_oficial == "A") %>%
+  filter(n<=-2 | n>=2) %>%   
+  mutate(rank = rank(-abs(n))) %>%
+  mutate(ordem = as.factor(rank)) %>%
+  mutate(ordem = fct_reorder(ordem, rank, .desc=TRUE) ) %>%
+  ggplot(aes(x=n,y=ordem), color = "black")+
+  geom_col() +
+  geom_text(aes(label= uf), color = "white") +
+  geom_vline(xintercept = c(-2,2), color = "white") +
+  scale_fill_discrete_qualitative("Pastel 1")+
+  theme_light() +
+  theme(
+    #text = element_text(size=20),
+    panel.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    axis.text.y = element_blank(),
+    legend.key = element_rect(fill = "black")
+    
+  ) +
+  labs(title = "Resíduos relevantes - Nota CAPAG A")
+
+```
+
+## Distribuição nos estados - CAPAG B
+
+```{r}
+residuo_teste %>%
+  filter(capag_oficial == "B") %>%
+  filter(n<=-2 | n>=2) %>%   
+  mutate(rank = rank(-abs(n))) %>%
+  mutate(ordem = as.factor(rank)) %>%
+  mutate(ordem = fct_reorder(ordem, rank, .desc=TRUE) ) %>%
+  ggplot(aes(x=n,y=ordem), color = "black")+
+  geom_col() +
+  geom_text(aes(label= uf), color = "white") +
+  geom_vline(xintercept = c(-2,2), color = "white") +
+  scale_fill_discrete_qualitative("Pastel 1")+
+  theme_light() +
+  theme(
+    #text = element_text(size=20),
+    panel.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    axis.text.y = element_blank(),
+    legend.key = element_rect(fill = "black")
+    
+  ) +
+  labs(title = "Resíduos relevantes - Nota CAPAG B")
+
+```
+
+## Distribuição nos estados - CAPAG C
+
+```{r}
+residuo_teste %>%
+  filter(capag_oficial == "C") %>%
+  filter(n<=-2 | n>=2) %>%   
+  mutate(rank = rank(-abs(n))) %>%
+  mutate(ordem = as.factor(rank)) %>%
+  mutate(ordem = fct_reorder(ordem, rank, .desc=TRUE) ) %>%
+  ggplot(aes(x=n,y=ordem), color = "black")+
+  geom_col() +
+  geom_text(aes(label= uf), color = "white") +
+  geom_vline(xintercept = c(-2,2), color = "white") +
+  scale_fill_discrete_qualitative("Pastel 1")+
+  theme_light() +
+  theme(
+    #text = element_text(size=20),
+    panel.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    axis.text.y = element_blank(),
+    legend.key = element_rect(fill = "black")
+    
+  ) +
+  labs(title = "Resíduos relevantes - Nota CAPAG C")
+```
+
+## Distribuição nos estados - CAPAG D
+
+```{r}
+residuo_teste %>%
+  filter(capag_oficial == "D") %>%
+  filter(n<=-2 | n>=2) %>%   
+  mutate(rank = rank(-abs(n))) %>%
+  mutate(ordem = as.factor(rank)) %>%
+  mutate(ordem = fct_reorder(ordem, rank, .desc=TRUE) ) %>%
+  ggplot(aes(x=n,y=ordem), color = "black")+
+  geom_col() +
+  geom_text(aes(label= uf), color = "white") +
+  geom_vline(xintercept = c(-2,2), color = "white") +
+  scale_fill_discrete_qualitative("Pastel 1")+
+  theme_light() +
+  theme(
+    #text = element_text(size=20),
+    panel.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    axis.text.y = element_blank(),
+    legend.key = element_rect(fill = "black")
+    
+  ) +
+  labs(title = "Resíduos relevantes - Nota CAPAG D")
+```
+
+## Distribuição nos estados - CAPAG não determinada
+
+```{r}
+residuo_teste %>%
+  filter(capag_oficial == "n.d.") %>%
+  filter(n<=-2 | n>=2) %>%   
+  mutate(rank = rank(-abs(n))) %>%
+  mutate(ordem = as.factor(rank)) %>%
+  mutate(ordem = fct_reorder(ordem, rank, .desc=TRUE) ) %>%
+  ggplot(aes(x=n,y=ordem), color = "black")+
+  geom_col() +
+  geom_text(aes(label= uf), color = "white") +
+  geom_vline(xintercept = c(-2,2), color = "white") +
+  scale_fill_discrete_qualitative("Pastel 1")+
+  theme_light() +
+  theme(
+    #text = element_text(size=20),
+    panel.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    axis.text.y = element_blank(),
+    legend.key = element_rect(fill = "black")
+    
+  ) +
+  labs(title = "Resíduos relevantes - Nota CAPAG não determinada")
+```
 
 ## Distribuição por hierarquia de Regiões de influência
 
