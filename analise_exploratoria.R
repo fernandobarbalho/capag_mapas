@@ -27,6 +27,18 @@ fit <- rpart(Indicador_3_Missing ~ ., data=data_tree_view, method="class")
 rpart.plot(fit, extra=101)
 
 
+
+library(stats)
+
+
+# Perform logistic regression
+model <- glm(Indicador_3_Missing ~ ., data=data_tree_view, family=binomial())
+
+# View the summary of the model
+summary(model)
+
+
+
 dados_capag_2022 %>%
   mutate(indicador_3_ausente =as.factor(is.na(indicador_3)) ) %>%
   mutate(municipio_menor_63k= ifelse(populacao>=68000,"maior que 68 mil habitantes", "menor que 68 mil habitantes")) %>%
@@ -147,6 +159,8 @@ seed_data %>%
 #Box plot dos dados considerando todos os dados
 
 dados_capag_2022 %>%
+  #filter_outliers("indicador_1") %>%
+  filter(indicador_1 <10) %>%
   gera_box_plot_indicador("1")
 
 
@@ -157,6 +171,7 @@ dados_capag_2022 %>%
 
 dados_capag_2022 %>%
   #filter_outliers("indicador_3") %>%
+  filter(indicador_3 <10) %>%
   gera_box_plot_indicador("3")
 
 
