@@ -3,6 +3,8 @@ title: "Mapas da CAPAG"
 author: "Fernando Barbalho"
 format: pptx
 editor: visual
+execute:
+  cache: true
 ---
 
 ```{r}
@@ -10,7 +12,7 @@ library(tidyverse)
 library(colorspace)
 library(patchwork)
 library(reshape2)
-
+library(sf)
 
 
 mapa_municipios<- rio::import("mapa_municipios.RDS")
@@ -218,6 +220,8 @@ purrr::map_dfr(ufs_a, function(a_uf){
 
 })
 
+
+
 m1<-
 sedes_municipios %>%
   inner_join(
@@ -225,12 +229,11 @@ sedes_municipios %>%
       rename(code_muni = cod_ibge)
   ) %>%
   ggplot()+
-  geom_sf( pch=21, fill="#808080",  color="#808080", size= 0.5) +
+  geom_sf( pch=21, fill="#ff6600",  color="#ff6600", size= 0.5) +
   #geom_sf(data = sedes,pch=21,  fill=point_color, color = point_color, size= 0.5 )+
   geom_sf(data= estados, fill=NA, color="white") +
   theme_light() +
   theme(
-    #text = element_text(size=20),
     panel.background = element_rect(fill = "black"),
     panel.grid = element_blank(),
     axis.title.x = element_blank(),
@@ -239,8 +242,8 @@ sedes_municipios %>%
     strip.text = element_text(color = "white"),
     axis.text = element_blank(),
     legend.key = element_rect(fill = "black")
-    
-  ) 
+
+  )
 
 
 m2<-
@@ -252,7 +255,7 @@ sedes_municipios %>%
       rename(code_muni = cod_ibge)
   ) %>%
   ggplot()+
-  geom_sf( pch=21, fill="#808080",  color="#808080", size= 0.5) +
+  geom_sf( pch=21, fill="#ff6600",  color="#ff6600", size= 0.5) +
   #geom_sf(data = sedes,pch=21,  fill=point_color, color = point_color, size= 0.5 )+
   geom_sf(data= estados, fill=NA, color="white") +
   theme_light() +
@@ -266,13 +269,163 @@ sedes_municipios %>%
     strip.text = element_text(color = "white"),
     axis.text = element_blank(),
     legend.key = element_rect(fill = "black")
-    
-  ) 
+
+  )
+# 
+# 
+m1+m2
 
 
+```
+
+## Mapa distribuição anormal nos estados - CAPAG A
+
+```{r}
+m1<-
+sedes_municipios %>%
+  inner_join(
+    df_sample_esperado %>%
+      filter(uf=="RS") %>%
+      rename(code_muni = cod_ibge)
+  ) %>%
+  ggplot()+
+  geom_sf( pch=21, fill="#ff6600",  color="#ff6600", size= 0.5) +
+  #geom_sf(data = sedes,pch=21,  fill=point_color, color = point_color, size= 0.5 )+
+  geom_sf(data= estados[estados$abbrev_state=="RS",], fill=NA, color="white") +
+  theme_light() +
+  theme(
+    panel.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    strip.background = element_rect(fill = "#505050"),
+    strip.text = element_text(color = "white"),
+    axis.text = element_blank(),
+    legend.key = element_rect(fill = "black")
+
+  )
+
+
+m2<-
+sedes_municipios %>%
+  inner_join(
+      dados_capag_2022 %>%
+    filter(capag_oficial == "A",
+           uf == "RS") %>%
+      rename(code_muni = cod_ibge)
+  ) %>%
+  ggplot()+
+  geom_sf( pch=21, fill="#ff6600",  color="#ff6600", size= 0.5) +
+  #geom_sf(data = sedes,pch=21,  fill=point_color, color = point_color, size= 0.5 )+
+  geom_sf(data= estados[estados$abbrev_state=="RS",], fill=NA, color="white") +
+  theme_light() +
+  theme(
+    #text = element_text(size=20),
+    panel.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    strip.background = element_rect(fill = "#505050"),
+    strip.text = element_text(color = "white"),
+    axis.text = element_blank(),
+    legend.key = element_rect(fill = "black")
+
+  )
+# 
+# 
 m1+m2
 
 ```
+
+## Mapa distribuição anormal nos estados - CAPAG A
+
+```{r}
+#Busca ufs relevantes para nota A com desvio padrão negativo
+
+ufs_a<- 
+(residuo_teste %>%
+  filter(capag_oficial == "A") %>%
+  filter(n<=-2))$uf 
+
+
+# Read the data
+data <- read.csv('resultado_chi_quadrado.csv')
+
+#monta dataframe com municipíos esperados
+
+df_sample_esperado<-
+purrr::map_dfr(ufs_a, function(a_uf){
+  quantidade<-
+    (data %>%
+    filter(tipo=="Esperado",
+           capag_oficial == "A",
+           uf == a_uf))$n
+  
+  quantidade<- round(quantidade)
+  
+  
+  sedes_municipios %>%
+    filter(abbrev_state == a_uf) %>%
+    slice_sample(n= quantidade)
+
+})
+
+
+
+m1<-
+df_sample_esperado%>%
+  ggplot()+
+  geom_sf( pch=21, fill="#ff6600",  color="#ff6600", size= 0.5) +
+  #geom_sf(data = sedes,pch=21,  fill=point_color, color = point_color, size= 0.5 )+
+  geom_sf(data= estados, fill=NA, color="white") +
+  theme_light() +
+  theme(
+    panel.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    strip.background = element_rect(fill = "#505050"),
+    strip.text = element_text(color = "white"),
+    axis.text = element_blank(),
+    legend.key = element_rect(fill = "black")
+
+  )
+
+
+m2<-
+sedes_municipios %>%
+  inner_join(
+      dados_capag_2022 %>%
+    filter(capag_oficial == "A",
+           uf %in% ufs_a) %>%
+      rename(code_muni = cod_ibge)
+  ) %>%
+  ggplot()+
+  geom_sf( pch=21, fill="#ff6600",  color="#ff6600", size= 0.5) +
+  #geom_sf(data = sedes,pch=21,  fill=point_color, color = point_color, size= 0.5 )+
+  geom_sf(data= estados, fill=NA, color="white") +
+  theme_light() +
+  theme(
+    #text = element_text(size=20),
+    panel.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    strip.background = element_rect(fill = "#505050"),
+    strip.text = element_text(color = "white"),
+    axis.text = element_blank(),
+    legend.key = element_rect(fill = "black")
+
+  )
+# 
+# 
+m1+m2
+
+```
+
+## Mapa distribuição anormal nos estados - CAPAG A
+
+
 
 ## Distribuição nos estados - CAPAG B
 
