@@ -9,6 +9,8 @@ editor: visual
 library(tidyverse)
 library(colorspace)
 library(patchwork)
+library(reshape2)
+
 
 
 mapa_municipios<- rio::import("mapa_municipios.RDS")
@@ -122,6 +124,36 @@ residuo_teste %>%
 
 ```
 
+## Distribuição anormal nos estados - Diferenças
+
+```{r}
+
+# Read the data
+data <- read.csv('resultado_chi_quadrado.csv')
+
+# Calculate the difference between observed and expected values
+expected <- subset(data, tipo == 'Esperado')
+observed <- subset(data, tipo != 'Esperado')
+
+# Merge observed and expected datasets by 'uf' and 'capag_oficial'
+merged_data <- merge(expected, observed, by = c("uf", "capag_oficial"))
+
+# Calculate the difference
+merged_data$difference <- merged_data$n.y - merged_data$n.x
+
+# Plot the heatmap using ggplot2
+ggplot(merged_data, aes(x = capag_oficial, y = uf, fill = difference)) +
+  geom_tile() +
+  scale_fill_gradient2(low = "blue", high = "red", mid = "white", midpoint = 0) +
+  geom_text(aes(label = sprintf("%.2f", difference)), size = 3) +
+  labs(title = "Diferença entre n observado e esperado",
+       x = "Categoria CAPAG",
+       y = "Estado",
+       fill = "Diferença") +
+  theme_light()
+
+```
+
 ## Distribuição anormal nos estados - CAPAG A
 
 ```{r}
@@ -151,13 +183,95 @@ residuo_teste %>%
 
 ```
 
-## Distribuição nos estados - Esperado x Observado
+## Mapa distribuição anormal nos estados - CAPAG A
 
 ```{r}
-esperado<- as_tibble(teste_chi[["expected"]])
 
-observado<- as_tibble(teste_chi[["observed"]])
+#Busca ufs relevantes para nota A com desvio padrão positivo
+
+ufs_a<- 
+(residuo_teste %>%
+  filter(capag_oficial == "A") %>%
+  filter(n>=2))$uf 
+
+
+# Read the data
+data <- read.csv('resultado_chi_quadrado.csv')
+
+#monta dataframe com municipíos esperados
+
+df_sample_esperado<-
+purrr::map_dfr(ufs_a, function(a_uf){
+  quantidade<-
+    (data %>%
+    filter(tipo=="Esperado",
+           capag_oficial == "A",
+           uf == a_uf))$n
   
+  quantidade<- round(quantidade)
+  
+  
+  dados_capag_2022 %>%
+    filter(capag_oficial == "A",
+           uf == a_uf) %>%
+    slice_sample(n= quantidade)
+
+})
+
+m1<-
+sedes_municipios %>%
+  inner_join(
+    df_sample_esperado %>%
+      rename(code_muni = cod_ibge)
+  ) %>%
+  ggplot()+
+  geom_sf( pch=21, fill="#808080",  color="#808080", size= 0.5) +
+  #geom_sf(data = sedes,pch=21,  fill=point_color, color = point_color, size= 0.5 )+
+  geom_sf(data= estados, fill=NA, color="white") +
+  theme_light() +
+  theme(
+    #text = element_text(size=20),
+    panel.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    strip.background = element_rect(fill = "#505050"),
+    strip.text = element_text(color = "white"),
+    axis.text = element_blank(),
+    legend.key = element_rect(fill = "black")
+    
+  ) 
+
+
+m2<-
+sedes_municipios %>%
+  inner_join(
+      dados_capag_2022 %>%
+    filter(capag_oficial == "A",
+           uf %in% ufs_a) %>%
+      rename(code_muni = cod_ibge)
+  ) %>%
+  ggplot()+
+  geom_sf( pch=21, fill="#808080",  color="#808080", size= 0.5) +
+  #geom_sf(data = sedes,pch=21,  fill=point_color, color = point_color, size= 0.5 )+
+  geom_sf(data= estados, fill=NA, color="white") +
+  theme_light() +
+  theme(
+    #text = element_text(size=20),
+    panel.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    strip.background = element_rect(fill = "#505050"),
+    strip.text = element_text(color = "white"),
+    axis.text = element_blank(),
+    legend.key = element_rect(fill = "black")
+    
+  ) 
+
+
+m1+m2
+
 ```
 
 ## Distribuição nos estados - CAPAG B
