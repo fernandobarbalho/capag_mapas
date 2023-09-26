@@ -5,8 +5,6 @@ format: pptx
 editor: visual
 ---
 
-## Distribuição nos estados
-
 ```{r}
 library(tidyverse)
 library(colorspace)
@@ -19,6 +17,73 @@ estados<- rio::import("estados.RDS")
 brasil<- rio::import("brasil.RDS")
 ibge2022<- rio::import("ibge2022.RDS")
 dados_capag_2022 <- rio::import("dados_capag_2022.RDS")
+
+```
+
+## Distribuição das notas
+
+```{r}
+dados_capag_2022 %>%
+  ggplot() +
+  geom_bar(aes(y=sort(capag_oficial, decreasing = TRUE))) +
+  theme_light() +
+  theme(
+    #text = element_text(size=20),
+    panel.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    legend.key = element_rect(fill = "black")
+    
+  )
+  
+```
+
+## Distribuição nos estados - ranking total
+
+```{r}
+dados_capag_2022 %>%
+  summarise(.by = c("uf","capag_oficial"),
+            quantidade = n()) %>%
+  mutate(uf = reorder(uf, quantidade)) %>%
+  ggplot() +
+  geom_col(aes(y=uf, x= quantidade, fill= capag_oficial)) +
+  scale_fill_discrete_qualitative("Dark 3")+
+  theme_light() +
+  theme(
+    panel.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    legend.key = element_rect(fill = "black")
+    
+  )
+```
+
+## Distribuição nos estados - proporção notas
+
+```{r}
+dados_capag_2022 %>%
+  summarise(.by = c("uf","capag_oficial"),
+            quantidade = n()) %>%
+  mutate(uf = reorder(uf, quantidade)) %>%
+  ggplot() +
+  geom_col(aes(y=uf, x= quantidade, fill= capag_oficial),position = "fill") +
+  scale_fill_discrete_qualitative("Dark 3")+
+  theme_light() +
+  theme(
+    panel.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    legend.key = element_rect(fill = "black")
+    
+  )
+```
+
+## Distribuição anormal nos estados
+
+```{r}
 
 
 ### Testes de chi quadrado
@@ -39,7 +104,7 @@ residuo_teste %>%
   ggplot(aes(x=n,y=ordem, fill= capag_oficial), color = "black")+
   geom_col() +
   geom_vline(xintercept = c(-2,2), color = "white") +
-  scale_fill_discrete_qualitative("Pastel 1")+
+  scale_fill_discrete_qualitative("Dark 3")+
   theme_light() +
   theme(
     #text = element_text(size=20),
@@ -57,7 +122,7 @@ residuo_teste %>%
 
 ```
 
-## Distribuição nos estados - CAPAG A
+## Distribuição anormal nos estados - CAPAG A
 
 ```{r}
 residuo_teste %>%
@@ -84,6 +149,15 @@ residuo_teste %>%
   ) +
   labs(title = "Resíduos relevantes - Nota CAPAG A")
 
+```
+
+## Distribuição nos estados - Esperado x Observado
+
+```{r}
+esperado<- as_tibble(teste_chi[["expected"]])
+
+observado<- as_tibble(teste_chi[["observed"]])
+  
 ```
 
 ## Distribuição nos estados - CAPAG B
