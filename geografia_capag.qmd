@@ -121,7 +121,7 @@ residuo_teste %>%
     
   ) +
   labs(title = "Resíduos relevantes",
-       fill = "Nota CAPAG")
+       fill= "Nota CAPAG")
 
 
 ```
@@ -425,6 +425,59 @@ m1+m2
 
 ## Mapa distribuição anormal nos estados - CAPAG A
 
+```{r}
+
+
+m1<-
+df_sample_esperado%>%
+  filter(abbrev_state == "BA") %>%
+  ggplot()+
+  geom_sf( pch=21, fill="#ff6600",  color="#ff6600", size= 0.5) +
+  #geom_sf(data = sedes,pch=21,  fill=point_color, color = point_color, size= 0.5 )+
+  geom_sf(data= estados[estados$abbrev_state =="BA",], fill=NA, color="white") +
+  theme_light() +
+  theme(
+    panel.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    strip.background = element_rect(fill = "#505050"),
+    strip.text = element_text(color = "white"),
+    axis.text = element_blank(),
+    legend.key = element_rect(fill = "black")
+
+  )
+
+
+m2<-
+sedes_municipios %>%
+  inner_join(
+      dados_capag_2022 %>%
+    filter(capag_oficial == "A",
+           uf %in% "BA") %>%
+      rename(code_muni = cod_ibge)
+  ) %>%
+  ggplot()+
+  geom_sf( pch=21, fill="#ff6600",  color="#ff6600", size= 0.5) +
+  #geom_sf(data = sedes,pch=21,  fill=point_color, color = point_color, size= 0.5 )+
+  geom_sf(data= estados[estados$abbrev_state=="BA",], fill=NA, color="white") +
+  theme_light() +
+  theme(
+    #text = element_text(size=20),
+    panel.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    strip.background = element_rect(fill = "#505050"),
+    strip.text = element_text(color = "white"),
+    axis.text = element_blank(),
+    legend.key = element_rect(fill = "black")
+
+  )
+# 
+# 
+m1+m2
+```
 
 
 ## Distribuição nos estados - CAPAG B
@@ -456,6 +509,183 @@ residuo_teste %>%
 
 ```
 
+## Mapa distribuição anormal nos estados - CAPAG B
+
+```{r}
+#Busca ufs relevantes para nota B com desvio padrão positivo
+
+ufs_b<- 
+(residuo_teste %>%
+  filter(capag_oficial == "B") %>%
+  filter(n>=2))$uf 
+
+
+# Read the data
+data <- read.csv('resultado_chi_quadrado.csv')
+
+#monta dataframe com municipíos esperados
+
+df_sample_esperado<-
+purrr::map_dfr(ufs_b, function(a_uf){
+  quantidade<-
+    (data %>%
+    filter(tipo=="Esperado",
+           capag_oficial == "B",
+           uf == a_uf))$n
+  
+  quantidade<- round(quantidade)
+  
+  
+  dados_capag_2022 %>%
+    filter(capag_oficial == "B",
+           uf == a_uf) %>%
+    slice_sample(n= quantidade)
+
+})
+
+
+
+m1<-
+sedes_municipios %>%
+  inner_join(
+    df_sample_esperado %>%
+      rename(code_muni = cod_ibge)
+  ) %>%
+  ggplot()+
+  geom_sf( pch=21, fill="#ff6600",  color="#ff6600", size= 0.5) +
+  #geom_sf(data = sedes,pch=21,  fill=point_color, color = point_color, size= 0.5 )+
+  geom_sf(data= estados, fill=NA, color="white") +
+  theme_light() +
+  theme(
+    panel.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    strip.background = element_rect(fill = "#505050"),
+    strip.text = element_text(color = "white"),
+    axis.text = element_blank(),
+    legend.key = element_rect(fill = "black")
+
+  )
+
+
+m2<-
+sedes_municipios %>%
+  inner_join(
+      dados_capag_2022 %>%
+    filter(capag_oficial == "B",
+           uf %in% ufs_b) %>%
+      rename(code_muni = cod_ibge)
+  ) %>%
+  ggplot()+
+  geom_sf( pch=21, fill="#ff6600",  color="#ff6600", size= 0.5) +
+  #geom_sf(data = sedes,pch=21,  fill=point_color, color = point_color, size= 0.5 )+
+  geom_sf(data= estados, fill=NA, color="white") +
+  theme_light() +
+  theme(
+    #text = element_text(size=20),
+    panel.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    strip.background = element_rect(fill = "#505050"),
+    strip.text = element_text(color = "white"),
+    axis.text = element_blank(),
+    legend.key = element_rect(fill = "black")
+
+  )
+# 
+# 
+m1+m2
+```
+
+## Mapa distribuição anormal nos estados - CAPAG B
+
+```{r}
+#Busca ufs relevantes para nota B com desvio padrão negativo
+
+ufs_b<- 
+(residuo_teste %>%
+  filter(capag_oficial == "B") %>%
+  filter(n<=-2))$uf 
+
+
+# Read the data
+data <- read.csv('resultado_chi_quadrado.csv')
+
+#monta dataframe com municipíos esperados
+
+df_sample_esperado<-
+purrr::map_dfr(ufs_b, function(a_uf){
+  quantidade<-
+    (data %>%
+    filter(tipo=="Esperado",
+           capag_oficial == "B",
+           uf == a_uf))$n
+  
+  quantidade<- round(quantidade)
+  
+  
+  sedes_municipios %>%
+    filter(abbrev_state == a_uf) %>%
+    slice_sample(n= quantidade)
+
+})
+
+
+
+m1<-
+df_sample_esperado%>%
+  ggplot()+
+  geom_sf( pch=21, fill="#ff6600",  color="#ff6600", size= 0.5) +
+  #geom_sf(data = sedes,pch=21,  fill=point_color, color = point_color, size= 0.5 )+
+  geom_sf(data= estados, fill=NA, color="white") +
+  theme_light() +
+  theme(
+    panel.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    strip.background = element_rect(fill = "#505050"),
+    strip.text = element_text(color = "white"),
+    axis.text = element_blank(),
+    legend.key = element_rect(fill = "black")
+
+  )
+
+
+m2<-
+sedes_municipios %>%
+  inner_join(
+      dados_capag_2022 %>%
+    filter(capag_oficial == "B",
+           uf %in% ufs_b) %>%
+      rename(code_muni = cod_ibge)
+  ) %>%
+  ggplot()+
+  geom_sf( pch=21, fill="#ff6600",  color="#ff6600", size= 0.5) +
+  #geom_sf(data = sedes,pch=21,  fill=point_color, color = point_color, size= 0.5 )+
+  geom_sf(data= estados, fill=NA, color="white") +
+  theme_light() +
+  theme(
+    #text = element_text(size=20),
+    panel.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    strip.background = element_rect(fill = "#505050"),
+    strip.text = element_text(color = "white"),
+    axis.text = element_blank(),
+    legend.key = element_rect(fill = "black")
+
+  )
+# 
+# 
+m1+m2
+```
+
+
+
 ## Distribuição nos estados - CAPAG C
 
 ```{r}
@@ -483,6 +713,184 @@ residuo_teste %>%
   ) +
   labs(title = "Resíduos relevantes - Nota CAPAG C")
 ```
+
+
+## Mapa distribuição anormal nos estados - CAPAG C
+
+```{r}
+#Busca ufs relevantes para nota B com desvio padrão positivo
+
+ufs_c<- 
+(residuo_teste %>%
+  filter(capag_oficial == "C") %>%
+  filter(n>=2))$uf 
+
+
+# Read the data
+data <- read.csv('resultado_chi_quadrado.csv')
+
+#monta dataframe com municipíos esperados
+
+df_sample_esperado<-
+purrr::map_dfr(ufs_c, function(a_uf){
+  quantidade<-
+    (data %>%
+    filter(tipo=="Esperado",
+           capag_oficial == "C",
+           uf == a_uf))$n
+  
+  quantidade<- round(quantidade)
+  
+  
+  dados_capag_2022 %>%
+    filter(capag_oficial == "C",
+           uf == a_uf) %>%
+    slice_sample(n= quantidade)
+
+})
+
+
+
+m1<-
+sedes_municipios %>%
+  inner_join(
+    df_sample_esperado %>%
+      rename(code_muni = cod_ibge)
+  ) %>%
+  ggplot()+
+  geom_sf( pch=21, fill="#ff6600",  color="#ff6600", size= 0.5) +
+  #geom_sf(data = sedes,pch=21,  fill=point_color, color = point_color, size= 0.5 )+
+  geom_sf(data= estados, fill=NA, color="white") +
+  theme_light() +
+  theme(
+    panel.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    strip.background = element_rect(fill = "#505050"),
+    strip.text = element_text(color = "white"),
+    axis.text = element_blank(),
+    legend.key = element_rect(fill = "black")
+
+  )
+
+
+m2<-
+sedes_municipios %>%
+  inner_join(
+      dados_capag_2022 %>%
+    filter(capag_oficial == "C",
+           uf %in% ufs_c) %>%
+      rename(code_muni = cod_ibge)
+  ) %>%
+  ggplot()+
+  geom_sf( pch=21, fill="#ff6600",  color="#ff6600", size= 0.5) +
+  #geom_sf(data = sedes,pch=21,  fill=point_color, color = point_color, size= 0.5 )+
+  geom_sf(data= estados, fill=NA, color="white") +
+  theme_light() +
+  theme(
+    #text = element_text(size=20),
+    panel.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    strip.background = element_rect(fill = "#505050"),
+    strip.text = element_text(color = "white"),
+    axis.text = element_blank(),
+    legend.key = element_rect(fill = "black")
+
+  )
+# 
+# 
+m1+m2
+```
+
+
+## Mapa distribuição anormal nos estados - CAPAG C
+```{r}
+#Busca ufs relevantes para nota B com desvio padrão negativo
+
+ufs_c<- 
+(residuo_teste %>%
+  filter(capag_oficial == "C") %>%
+  filter(n<=-2))$uf 
+
+
+# Read the data
+data <- read.csv('resultado_chi_quadrado.csv')
+
+#monta dataframe com municipíos esperados
+
+df_sample_esperado<-
+purrr::map_dfr(ufs_c, function(a_uf){
+  quantidade<-
+    (data %>%
+    filter(tipo=="Esperado",
+           capag_oficial == "C",
+           uf == a_uf))$n
+  
+  quantidade<- round(quantidade)
+  
+  
+  sedes_municipios %>%
+    filter(abbrev_state == a_uf) %>%
+    slice_sample(n= quantidade)
+
+})
+
+
+
+m1<-
+df_sample_esperado%>%
+  ggplot()+
+  geom_sf( pch=21, fill="#ff6600",  color="#ff6600", size= 0.5) +
+  #geom_sf(data = sedes,pch=21,  fill=point_color, color = point_color, size= 0.5 )+
+  geom_sf(data= estados, fill=NA, color="white") +
+  theme_light() +
+  theme(
+    panel.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    strip.background = element_rect(fill = "#505050"),
+    strip.text = element_text(color = "white"),
+    axis.text = element_blank(),
+    legend.key = element_rect(fill = "black")
+
+  )
+
+
+m2<-
+sedes_municipios %>%
+  inner_join(
+      dados_capag_2022 %>%
+    filter(capag_oficial == "C",
+           uf %in% ufs_c) %>%
+      rename(code_muni = cod_ibge)
+  ) %>%
+  ggplot()+
+  geom_sf( pch=21, fill="#ff6600",  color="#ff6600", size= 0.5) +
+  #geom_sf(data = sedes,pch=21,  fill=point_color, color = point_color, size= 0.5 )+
+  geom_sf(data= estados, fill=NA, color="white") +
+  theme_light() +
+  theme(
+    #text = element_text(size=20),
+    panel.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    strip.background = element_rect(fill = "#505050"),
+    strip.text = element_text(color = "white"),
+    axis.text = element_blank(),
+    legend.key = element_rect(fill = "black")
+
+  )
+# 
+# 
+m1+m2
+
+```
+
 
 ## Distribuição nos estados - CAPAG D
 
@@ -539,6 +947,182 @@ residuo_teste %>%
   ) +
   labs(title = "Resíduos relevantes - Nota CAPAG não determinada")
 ```
+
+## Mapa distribuição anormal nos estados - Nota não definida
+
+```{r}
+#Busca ufs relevantes para nota B com desvio padrão positivo
+
+ufs_nd<- 
+(residuo_teste %>%
+  filter(capag_oficial == "n.d.") %>%
+  filter(n>=2))$uf 
+
+
+# Read the data
+data <- read.csv('resultado_chi_quadrado.csv')
+
+#monta dataframe com municipíos esperados
+
+df_sample_esperado<-
+purrr::map_dfr(ufs_nd, function(a_uf){
+  quantidade<-
+    (data %>%
+    filter(tipo=="Esperado",
+           capag_oficial == "n.d.",
+           uf == a_uf))$n
+  
+  quantidade<- round(quantidade)
+  
+  
+  dados_capag_2022 %>%
+    filter(capag_oficial == "n.d.",
+           uf == a_uf) %>%
+    slice_sample(n= quantidade)
+
+})
+
+
+
+m1<-
+sedes_municipios %>%
+  inner_join(
+    df_sample_esperado %>%
+      rename(code_muni = cod_ibge)
+  ) %>%
+  ggplot()+
+  geom_sf( pch=21, fill="#ff6600",  color="#ff6600", size= 0.5) +
+  #geom_sf(data = sedes,pch=21,  fill=point_color, color = point_color, size= 0.5 )+
+  geom_sf(data= estados, fill=NA, color="white") +
+  theme_light() +
+  theme(
+    panel.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    strip.background = element_rect(fill = "#505050"),
+    strip.text = element_text(color = "white"),
+    axis.text = element_blank(),
+    legend.key = element_rect(fill = "black")
+
+  )
+
+
+m2<-
+sedes_municipios %>%
+  inner_join(
+      dados_capag_2022 %>%
+    filter(capag_oficial == "n.d.",
+           uf %in% ufs_nd) %>%
+      rename(code_muni = cod_ibge)
+  ) %>%
+  ggplot()+
+  geom_sf( pch=21, fill="#ff6600",  color="#ff6600", size= 0.5) +
+  #geom_sf(data = sedes,pch=21,  fill=point_color, color = point_color, size= 0.5 )+
+  geom_sf(data= estados, fill=NA, color="white") +
+  theme_light() +
+  theme(
+    #text = element_text(size=20),
+    panel.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    strip.background = element_rect(fill = "#505050"),
+    strip.text = element_text(color = "white"),
+    axis.text = element_blank(),
+    legend.key = element_rect(fill = "black")
+
+  )
+# 
+# 
+m1+m2
+```
+
+## Mapa distribuição anormal nos estados - Nota não definida
+
+```{r}
+#Busca ufs relevantes para nota não definida com desvio padrão negativo
+
+ufs_nd<- 
+(residuo_teste %>%
+  filter(capag_oficial == "n.d.") %>%
+  filter(n<=-2))$uf 
+
+
+# Read the data
+data <- read.csv('resultado_chi_quadrado.csv')
+
+#monta dataframe com municipíos esperados
+
+df_sample_esperado<-
+purrr::map_dfr(ufs_nd, function(a_uf){
+  quantidade<-
+    (data %>%
+    filter(tipo=="Esperado",
+           capag_oficial == "n.d.",
+           uf == a_uf))$n
+  
+  quantidade<- round(quantidade)
+  
+  
+  sedes_municipios %>%
+    filter(abbrev_state == a_uf) %>%
+    slice_sample(n= quantidade)
+
+})
+
+
+
+m1<-
+df_sample_esperado%>%
+  ggplot()+
+  geom_sf( pch=21, fill="#ff6600",  color="#ff6600", size= 0.5) +
+  #geom_sf(data = sedes,pch=21,  fill=point_color, color = point_color, size= 0.5 )+
+  geom_sf(data= estados, fill=NA, color="white") +
+  theme_light() +
+  theme(
+    panel.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    strip.background = element_rect(fill = "#505050"),
+    strip.text = element_text(color = "white"),
+    axis.text = element_blank(),
+    legend.key = element_rect(fill = "black")
+
+  )
+
+
+m2<-
+sedes_municipios %>%
+  inner_join(
+      dados_capag_2022 %>%
+    filter(capag_oficial == "n.d.",
+           uf %in% ufs_nd) %>%
+      rename(code_muni = cod_ibge)
+  ) %>%
+  ggplot()+
+  geom_sf( pch=21, fill="#ff6600",  color="#ff6600", size= 0.5) +
+  #geom_sf(data = sedes,pch=21,  fill=point_color, color = point_color, size= 0.5 )+
+  geom_sf(data= estados, fill=NA, color="white") +
+  theme_light() +
+  theme(
+    #text = element_text(size=20),
+    panel.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    strip.background = element_rect(fill = "#505050"),
+    strip.text = element_text(color = "white"),
+    axis.text = element_blank(),
+    legend.key = element_rect(fill = "black")
+
+  )
+# 
+# 
+m1+m2
+```
+
 
 ## Distribuição por hierarquia de Regiões de influência
 
