@@ -1181,6 +1181,186 @@ residuo_teste_capag_regic %>%
 
 ```
 
+## Distribuição anormal nos estados - Diferenças
+
+```{r}
+
+observado_teste_capag_regic<-
+  as_tibble(teste_chi_capag_regic[["observed"]], .name_repair= make.names)
+
+
+names(observado_teste_capag_regic) <- c("nivel_hierarquico","capag_oficial","n")
+
+observado_teste_capag_regic$tipo = "Observado"
+
+
+
+esperado_teste_capag_regic<-
+  as_tibble(teste_chi_capag_regic[["expected"]], .name_repair= make.names)
+
+niveis_regic<- unique(observado_teste_capag_regic$nivel_hierarquico)
+
+esperado_teste_capag_regic$nivel_hierarquico <- niveis_regic
+
+esperado_teste_capag_regic<-
+esperado_teste_capag_regic %>%
+  pivot_longer(cols=1:5, names_to = "capag_oficial", values_to = "n")
+
+esperado_teste_capag_regic$tipo = "Esperado"
+
+df_dados_regic_capag<-
+  bind_rows(observado_teste_capag_regic, esperado_teste_capag_regic)
+
+
+# Read the data
+data <- df_dados_regic_capag
+
+# Calculate the difference between observed and expected values
+expected <- subset(data, tipo == 'Esperado')
+observed <- subset(data, tipo != 'Esperado')
+
+# Merge observed and expected datasets by 'uf' and 'capag_oficial'
+merged_data <- merge(expected, observed, by = c("nivel_hierarquico", "capag_oficial"))
+
+# Calculate the difference
+merged_data$difference <- merged_data$n.y - merged_data$n.x
+
+# Plot the heatmap using ggplot2
+ggplot(merged_data, aes(x = capag_oficial, y = nivel_hierarquico, fill = difference)) +
+  geom_tile() +
+  scale_fill_gradient2(low = "blue", high = "red", mid = "white", midpoint = 0) +
+  geom_text(aes(label = sprintf("%.2f", difference)), size = 3) +
+  labs(title = "Diferença entre n observado e esperado",
+       x = "Categoria CAPAG",
+       y = "Estado",
+       fill = "Diferença") +
+  theme_light()
+
+
+
+```
+
+## Distribuição anormal nos níveis hierárquicos - CAPAG A
+
+```{r}
+residuo_teste_capag_regic %>%
+  filter(capag_oficial == "A") %>%
+  filter(n<=-2 | n>=2) %>%   
+  mutate(rank = rank(-abs(n))) %>%
+  mutate(ordem = as.factor(rank)) %>%
+  mutate(ordem = fct_reorder(ordem, rank, .desc=TRUE) ) %>%
+  ggplot(aes(x=n,y=ordem), color = "black")+
+  geom_col() +
+  geom_text(aes(label= str_wrap(nivel_hierarquico,10)),nudge_x = 0  , color = "white") +
+  geom_vline(xintercept = c(-2,2), color = "white") +
+  scale_fill_discrete_qualitative("Pastel 1")+
+  theme_light() +
+  theme(
+    #text = element_text(size=20),
+    panel.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    axis.text.y = element_blank(),
+    legend.key = element_rect(fill = "black")
+    
+  ) +
+  labs(title = "Resíduos relevantes - Nota CAPAG A")
+
+```
+
+## Mapa distribuição anormal nos estados - CAPAG A
+
+```{r}
+
+#Busca ufs relevantes para nota A com desvio padrão positivo
+
+niveis_a<- 
+(residuo_teste_capag_regic %>%
+  filter(capag_oficial == "A") %>%
+  filter(n>=2))$nivel_hierarquico 
+
+
+# Read the data
+data <- df_dados_regic_capag
+
+#monta dataframe com municipíos esperados
+
+df_sample_esperado<-
+purrr::map_dfr(niveis_a, function(a_nivel){
+  quantidade<-
+    (data %>%
+    filter(tipo=="Esperado",
+           capag_oficial == "A",
+           nivel_hierarquico == a_nivel))$n
+  
+  quantidade<- round(quantidade)
+  
+  
+  capag_regic_trabalho %>%
+    filter(capag_oficial == "A",
+           nh == a_nivel) %>%
+    slice_sample(n= quantidade)
+
+})
+
+
+
+m1<-
+sedes_municipios %>%
+  inner_join(
+    df_sample_esperado %>%
+      rename(code_muni = cod_cidade)
+  ) %>%
+  ggplot()+
+  geom_sf( pch=21, fill="#ff6600",  color="#ff6600", size= 0.5) +
+  #geom_sf(data = sedes,pch=21,  fill=point_color, color = point_color, size= 0.5 )+
+  geom_sf(data= estados, fill=NA, color="white") +
+  theme_light() +
+  theme(
+    panel.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    strip.background = element_rect(fill = "#505050"),
+    strip.text = element_text(color = "white"),
+    axis.text = element_blank(),
+    legend.key = element_rect(fill = "black")
+
+  )
+
+
+m2<-
+sedes_municipios %>%
+  inner_join(
+      capag_regic_trabalho %>%
+    filter(capag_oficial == "A",
+           nh %in% niveis_a) %>%
+      rename(code_muni = cod_cidade)
+  ) %>%
+  ggplot()+
+  geom_sf( pch=21, fill="#ff6600",  color="#ff6600", size= 0.5) +
+  #geom_sf(data = sedes,pch=21,  fill=point_color, color = point_color, size= 0.5 )+
+  geom_sf(data= estados, fill=NA, color="white") +
+  theme_light() +
+  theme(
+    #text = element_text(size=20),
+    panel.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    strip.background = element_rect(fill = "#505050"),
+    strip.text = element_text(color = "white"),
+    axis.text = element_blank(),
+    legend.key = element_rect(fill = "black")
+
+  )
+# 
+# 
+m1+m2
+
+
+```
 
 
 When you click the **Render** button a document will be generated that includes:
