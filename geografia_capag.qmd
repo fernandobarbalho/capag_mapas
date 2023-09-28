@@ -21,6 +21,8 @@ estados<- rio::import("estados.RDS")
 brasil<- rio::import("brasil.RDS")
 ibge2022<- rio::import("ibge2022.RDS")
 dados_capag_2022 <- rio::import("dados_capag_2022.RDS")
+regic_trabalho<- rio::import("regic_trabalho.RDS")
+
 
 ```
 
@@ -1125,6 +1127,61 @@ m1+m2
 
 
 ## Distribuição por hierarquia de Regiões de influência
+
+```{r}
+capag_regic<-
+  dados_capag_2022 %>%
+  rename(cod_cidade= cod_ibge) %>%
+  left_join(regic_trabalho) %>%
+  mutate(nivel_hierarquia = ifelse(is.na(nivel_hierarquia),0,nivel_hierarquia),
+         nome_nivel_hierarquia = ifelse(is.na(nome_nivel_hierarquia),"Arranjo populacional", nome_nivel_hierarquia))
+
+capag_regic_trabalho<-
+capag_regic %>%
+  mutate(nivel_hierarquia = ifelse(str_sub(nivel_hierarquia,1,1)=="1","1",nivel_hierarquia),
+         nome_nivel_hierarquia = ifelse(nivel_hierarquia == "1", "Metrópole",nome_nivel_hierarquia ),
+         nh = paste(nivel_hierarquia, nome_nivel_hierarquia, sep = " - "))
+
+
+#teste chi_quadrado
+
+teste_chi_capag_regic<-
+chisq.test(capag_regic_trabalho$nh, capag_regic_trabalho$capag_oficial,  simulate.p.value = TRUE)
+
+
+residuo_teste_capag_regic<-
+  as_tibble(teste_chi_capag_regic[["stdres"]], .name_repair= make.names)
+
+names(residuo_teste_capag_regic) <- c("nivel_hierarquico","capag_oficial","n")
+
+residuo_teste_capag_regic %>%
+  filter(n<=-2 | n>=2) %>%   
+  mutate(rank = rank(-abs(n))) %>%
+  mutate(ordem = as.factor(rank)) %>%
+  mutate(ordem = fct_reorder(ordem, rank, .desc=TRUE) ) %>%
+  ggplot(aes(x=n,y=ordem, fill= capag_oficial), color = "black")+
+  geom_col() +
+  geom_vline(xintercept = c(-2,2), color = "white") +
+  scale_fill_discrete_qualitative("Dark 3")+
+  theme_light() +
+  theme(
+    #text = element_text(size=20),
+    panel.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    axis.text.y = element_blank(),
+    legend.key = element_rect(fill = "black")
+    
+  ) +
+  labs(title = "Resíduos relevantes",
+       fill= "Nota CAPAG")
+
+
+
+```
+
+
 
 When you click the **Render** button a document will be generated that includes:
 
