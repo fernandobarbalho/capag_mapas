@@ -1533,8 +1533,6 @@ purrr::map_dfr(niveis_b, function(a_nivel){
            capag_oficial == "B",
            nivel_hierarquico == a_nivel))$n
   
-  print(quantidade)
-  
   quantidade<- round(quantidade)
   
   
@@ -1606,6 +1604,766 @@ When you click the **Render** button a document will be generated that includes:
 -   Output from executable code
 
 ## Distribuição por clusters espaciais
+
+```{r}
+gera_clusters_espaciais<- function(.data, nome_coluna){
+
+
+
+  # select column to work with
+  s <- subset(.data, select=nome_coluna)
+
+  names(s)[1]<-"indicador"
+
+
+
+  s %>%
+    ggplot() +
+    geom_histogram(aes(x=!!sym(nome_coluna)),color="white")
+
+  s %>%
+    mutate(tipo_indicador= nome_coluna) %>%
+    ggplot() +
+    geom_boxplot(aes(x=tipo_indicador, y=!!sym(nome_coluna)))
+
+
+
+  # define neighbor
+  nb <- poly2nb(s, queen=TRUE) # here nb list all ID numbers of neighbors;
+
+  # assign weights to neighbors
+  lw <- nb2listw(nb, style="W", zero.policy=TRUE) # Row-standardized weights
+
+
+  # # compute neighbor average
+  # inc.lag <- lag.listw(lw, s$indicador_1, zero.policy=TRUE)
+  #
+  # # plot polygons vs lags
+  # plot(inc.lag ~ s$indicador_1, pch=16, asp=1)
+  # M1 <- lm(inc.lag ~ s$indicador_1)
+  # abline(M1, col="blue")
+  #
+  # # access Moran's coeff
+  # coef(M1)[2]
+  #
+  # # calculating Moran coeff with one line
+  # I <- moran(s$indicador_1, lw, length(nb), Szero(lw), zero.policy=TRUE)[1]
+  #
+  # I
+  #
+  #
+  #
+  #
+  # # hypothesis test with moran.test function
+  # moran.test(s$indicador_1,lw, alternative="greater", zero.policy=TRUE)
+  #
+  # # using Monte-Carlo simulation
+  # MC<- moran.mc(s$indicador_1, lw, nsim=999, alternative="greater", zero.policy=TRUE)
+  #
+  # # View results (including p-value)
+  # MC# plot Null distribution
+  # plot(MC)
+
+
+
+  lisa<- spdep::localmoran(s$indicador, lw, zero.policy=TRUE)
+
+  df_lisa<- as_tibble(lisa)
+
+
+
+  df_lisa<- janitor::clean_names(df_lisa)
+
+
+  df_lisa_significante<-
+    df_lisa %>%
+    mutate(id = row_number())%>%
+    filter(pr_z_e_ii <=0.05)
+
+
+  df_vizinhos<-
+    purrr::map_dfr(df_lisa_significante$id, function(a_id){
+
+
+      tibble(id= c(a_id, lw[["neighbours"]][[a_id]]),
+             id_referencia= rep(a_id,NROW(lw[["neighbours"]][[a_id]])+1),
+             ii=  rep(df_lisa_significante$ii[which(df_lisa_significante$id== a_id)], NROW(lw[["neighbours"]][[a_id]])+1),
+             z_ii=  rep(df_lisa_significante$z_ii[which(df_lisa_significante$id== a_id)], NROW(lw[["neighbours"]][[a_id]])+1))
+
+    })
+
+
+
+  id_central<-
+    unique(df_vizinhos$id_referencia)
+
+  ###Seleciona os clusters em que o id_referencia se mantém como referência do próprio cluster
+  clusters_selecionado<-
+    df_vizinhos %>%
+    filter(id %in% id_central) %>%
+    group_by(id) %>%
+    filter(abs(z_ii) == max(abs(z_ii))) %>%
+    ungroup() %>%
+    filter(id_referencia == id)
+
+
+
+  id_referencia_selecao<- unique(clusters_selecionado$id_referencia)
+
+  vizinhos_selecao<-
+    df_vizinhos %>%
+    filter(id_referencia %in% id_referencia_selecao)%>%
+    group_by(id) %>%
+    filter(abs(z_ii) == max(abs(z_ii))) %>%
+    ungroup()
+
+  ids_referencias_finais<-
+    (vizinhos_selecao %>%
+       summarise(.by = id_referencia,
+                 quantidade = n()) %>%
+       filter(quantidade >=2))$id_referencia
+
+
+  df_clusters_espaciais<-
+    .data %>%
+    mutate(id = row_number())%>%
+    inner_join(
+      vizinhos_selecao %>%
+        filter(id_referencia %in% ids_referencias_finais )
+    )
+
+  return(list(df_clusters_espaciais= df_clusters_espaciais,lw=lw))
+
+}
+
+
+
+
+agrupa_mapa_id_referencia<- function(.data, a_uf="", sinal=0, indicador){
+
+
+  clusters_espaciais_trabalho<-
+    .data[["df_clusters_espaciais"]]
+
+
+
+
+
+  if (a_uf!=""){
+    clusters_espaciais_trabalho <-
+      clusters_espaciais_trabalho %>%
+      filter(abbrev_state == a_uf)
+
+  }
+
+  if (sinal!=0){
+    clusters_espaciais_trabalho <-
+      clusters_espaciais_trabalho %>%
+      filter(sign(z_ii) == sinal)
+
+  }
+
+
+
+
+  ids_referencia<- unique(clusters_espaciais_trabalho$id_referencia)
+  vizinhos<-.data$lw$neighbours
+
+  position<- which(names(clusters_espaciais_trabalho) == indicador)
+
+
+
+  df_clusters_espaciais<- as_tibble(clusters_espaciais_trabalho)
+
+  names(df_clusters_espaciais)[position] <- "indicador_selecionado"
+
+
+
+
+  purrr::map_dfr(ids_referencia, function(a_id){
+
+
+
+    z_ii_objeto<- unique(clusters_espaciais_trabalho$z_ii[clusters_espaciais_trabalho$id_referencia==a_id])
+    ii_objeto<- unique(clusters_espaciais_trabalho$ii[clusters_espaciais_trabalho$id_referencia==a_id])
+    media_indice<- mean(df_clusters_espaciais$indicador_selecionado[df_clusters_espaciais$id_referencia==a_id])
+    cv<- sd(df_clusters_espaciais$indicador_selecionado[df_clusters_espaciais$id_referencia==a_id])/
+        mean(df_clusters_espaciais$indicador_selecionado[df_clusters_espaciais$id_referencia==a_id])
+
+
+    clusters_espaciais_trabalho %>%
+      filter(id %in% c(a_id,vizinhos[[a_id]]))%>%
+      group_by(id_referencia) %>%
+      st_union() %>%
+      as_tibble() %>%
+      mutate(id_referencia =a_id,
+             z_ii = z_ii_objeto,
+             ii = ii_objeto,
+             media_indice = media_indice,
+             multiplicador = 1+runif(n=1),
+             cv =cv)
+
+
+  })
+
+
+}
+
+```
+
+
+## Clusters convergentes indicador 1: distribuição
+
+```{r}
+#Estatísticas descritiva dos clusters
+
+clusters_espaciais_1<-
+  mapa_municipios[-2260,] %>%
+  inner_join(
+    dados_capag_2022 %>%
+      filter(indicador_1<10) %>%
+      rename(code_muni = cod_ibge)
+  )%>%
+  gera_clusters_espaciais(nome_coluna = "indicador_1")
+
+
+
+df_mapa_agrupado_convergentes_1<-
+  clusters_espaciais_1%>%
+  agrupa_mapa_id_referencia(sinal = 1, indicador = "indicador_1")
+
+
+
+##box-plot clusters convergentes
+g1<- df_mapa_agrupado_convergentes_1 %>%
+  mutate(grupo  = "convergente 1") %>%
+  ggplot() +
+  geom_boxplot(aes(x=grupo, y=media_indice))+
+  theme_light() +
+  theme(
+    #text = element_text(size=20),
+    panel.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    axis.title.x = element_blank(),
+    #axis.title.y = element_blank(),
+    strip.background = element_rect(fill = "#505050"),
+    strip.text = element_text(color = "white"),
+    #axis.text = element_blank(),
+    legend.key = element_rect(fill = "black")
+
+  ) +
+  labs(y="Média")
+
+
+g2<- df_mapa_agrupado_convergentes_1 %>%
+  mutate(grupo  = "convergente 1") %>%
+  ggplot() +
+  geom_boxplot(aes(x=grupo, y=cv))+
+  theme_light() +
+  theme(
+    #text = element_text(size=20),
+    panel.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    axis.title.x = element_blank(),
+    #axis.title.y = element_blank(),
+    strip.background = element_rect(fill = "#505050"),
+    strip.text = element_text(color = "white"),
+    #axis.text = element_blank(),
+    legend.key = element_rect(fill = "black")
+
+  )
+
+g1+g2
+```
+
+## Clusters convergentes indicador 1: mapas
+
+```{r}
+m1<-
+df_mapa_agrupado_convergentes_1 %>%
+  ggplot() +
+  geom_sf(data=estados, fill= NA) +
+  geom_sf(aes(geometry = geometry,  fill= media_indice), color=NA,  show.legend = TRUE) +
+  scale_fill_continuous_sequential(palette = "Heat 2")+
+  theme_void()+
+  theme(
+    panel.background = element_rect(fill = "black")
+  )+
+  labs(fill="Média")
+
+
+m2<-
+  df_mapa_agrupado_convergentes_1 %>%
+  ggplot() +
+  geom_sf(data=estados, fill= NA) +
+  geom_sf(aes(geometry = geometry,  fill= cv), color=NA,  show.legend = TRUE) +
+  scale_fill_continuous_sequential(palette = "Heat 2")+
+  theme_void()+
+  theme(
+    panel.background = element_rect(fill = "black")
+  )
+
+m1+m2
+
+```
+
+
+
+## Clusters divergentes indicador 1: distribuição
+
+```{r}
+#Estatísticas descritiva dos clusters
+
+
+
+df_mapa_agrupado_divergentes_1<-
+  clusters_espaciais_1%>%
+  agrupa_mapa_id_referencia(sinal = -1, indicador = "indicador_1")
+
+
+
+##box-plot clusters convergentes
+g1<- df_mapa_agrupado_divergentes_1 %>%
+  mutate(grupo  = "divergente 1") %>%
+  ggplot() +
+  geom_boxplot(aes(x=grupo, y=media_indice))+
+  theme_light() +
+  theme(
+    #text = element_text(size=20),
+    panel.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    axis.title.x = element_blank(),
+    #axis.title.y = element_blank(),
+    strip.background = element_rect(fill = "#505050"),
+    strip.text = element_text(color = "white"),
+    #axis.text = element_blank(),
+    legend.key = element_rect(fill = "black")
+
+  ) +
+  labs(y="Média")
+
+
+g2<- df_mapa_agrupado_divergentes_1 %>%
+  mutate(grupo  = "divergente 1") %>%
+  ggplot() +
+  geom_boxplot(aes(x=grupo, y=cv))+
+  theme_light() +
+  theme(
+    #text = element_text(size=20),
+    panel.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    axis.title.x = element_blank(),
+    #axis.title.y = element_blank(),
+    strip.background = element_rect(fill = "#505050"),
+    strip.text = element_text(color = "white"),
+    #axis.text = element_blank(),
+    legend.key = element_rect(fill = "black")
+
+  )
+
+g1+g2
+```
+
+## Clusters divergentes indicador 1: mapas
+
+```{r}
+m1<-
+df_mapa_agrupado_divergentes_1 %>%
+  ggplot() +
+  geom_sf(data=estados, fill= NA) +
+  geom_sf(aes(geometry = geometry,  fill= media_indice), color=NA,  show.legend = TRUE) +
+  scale_fill_continuous_sequential(palette = "Heat 2")+
+  theme_void()+
+  theme(
+    panel.background = element_rect(fill = "black")
+  )+
+  labs(fill="Média")
+
+
+m2<-
+  df_mapa_agrupado_divergentes_1 %>%
+  ggplot() +
+  geom_sf(data=estados, fill= NA) +
+  geom_sf(aes(geometry = geometry,  fill= cv), color=NA,  show.legend = TRUE) +
+  scale_fill_continuous_sequential(palette = "Heat 2")+
+  theme_void()+
+  theme(
+    panel.background = element_rect(fill = "black")
+  )
+
+m1+m2
+
+```
+
+
+
+## Clusters convergentes indicador 2: distribuição
+
+```{r}
+#Estatísticas descritiva dos clusters
+
+clusters_espaciais_2<-
+  mapa_municipios[-2260,] %>%
+  inner_join(
+    dados_capag_2022 %>%
+      filter(indicador_2<10) %>%
+      rename(code_muni = cod_ibge)
+  )%>%
+  gera_clusters_espaciais(nome_coluna = "indicador_2")
+
+
+
+df_mapa_agrupado_convergentes_2<-
+  clusters_espaciais_2%>%
+  agrupa_mapa_id_referencia(sinal = 1, indicador = "indicador_2")
+
+
+
+##box-plot clusters convergentes
+g1<- df_mapa_agrupado_convergentes_2 %>%
+  mutate(grupo  = "convergente 2") %>%
+  ggplot() +
+  geom_boxplot(aes(x=grupo, y=media_indice))+
+  theme_light() +
+  theme(
+    #text = element_text(size=20),
+    panel.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    axis.title.x = element_blank(),
+    #axis.title.y = element_blank(),
+    strip.background = element_rect(fill = "#505050"),
+    strip.text = element_text(color = "white"),
+    #axis.text = element_blank(),
+    legend.key = element_rect(fill = "black")
+
+  ) +
+  labs(y="Média")
+
+
+g2<- df_mapa_agrupado_convergentes_2 %>%
+  mutate(grupo  = "convergente 2") %>%
+  ggplot() +
+  geom_boxplot(aes(x=grupo, y=cv))+
+  theme_light() +
+  theme(
+    #text = element_text(size=20),
+    panel.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    axis.title.x = element_blank(),
+    #axis.title.y = element_blank(),
+    strip.background = element_rect(fill = "#505050"),
+    strip.text = element_text(color = "white"),
+    #axis.text = element_blank(),
+    legend.key = element_rect(fill = "black")
+
+  )
+
+g1+g2
+```
+
+## Clusters convergentes indicador 2: mapas
+
+```{r}
+m1<-
+df_mapa_agrupado_convergentes_2 %>%
+  ggplot() +
+  geom_sf(data=estados, fill= NA) +
+  geom_sf(aes(geometry = geometry,  fill= media_indice), color=NA,  show.legend = TRUE) +
+  scale_fill_continuous_sequential(palette = "Heat 2")+
+  theme_void()+
+  theme(
+    panel.background = element_rect(fill = "black")
+  )+
+  labs(fill="Média")
+
+
+m2<-
+  df_mapa_agrupado_convergentes_2 %>%
+  ggplot() +
+  geom_sf(data=estados, fill= NA) +
+  geom_sf(aes(geometry = geometry,  fill= cv), color=NA,  show.legend = TRUE) +
+  scale_fill_continuous_sequential(palette = "Heat 2")+
+  theme_void()+
+  theme(
+    panel.background = element_rect(fill = "black")
+  )
+
+m1+m2
+
+```
+
+
+
+## Clusters divergentes indicador 2: distribuição
+
+```{r}
+#Estatísticas descritiva dos clusters
+
+
+
+df_mapa_agrupado_divergentes_2<-
+  clusters_espaciais_2%>%
+  agrupa_mapa_id_referencia(sinal = -1, indicador = "indicador_2")
+
+
+
+##box-plot clusters convergentes
+g1<- df_mapa_agrupado_divergentes_2 %>%
+  mutate(grupo  = "divergente 2") %>%
+  ggplot() +
+  geom_boxplot(aes(x=grupo, y=media_indice))+
+  theme_light() +
+  theme(
+    #text = element_text(size=20),
+    panel.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    axis.title.x = element_blank(),
+    #axis.title.y = element_blank(),
+    strip.background = element_rect(fill = "#505050"),
+    strip.text = element_text(color = "white"),
+    #axis.text = element_blank(),
+    legend.key = element_rect(fill = "black")
+
+  ) +
+  labs(y="Média")
+
+
+g2<- df_mapa_agrupado_divergentes_2 %>%
+  mutate(grupo  = "divergente 2") %>%
+  ggplot() +
+  geom_boxplot(aes(x=grupo, y=cv))+
+  theme_light() +
+  theme(
+    #text = element_text(size=20),
+    panel.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    axis.title.x = element_blank(),
+    #axis.title.y = element_blank(),
+    strip.background = element_rect(fill = "#505050"),
+    strip.text = element_text(color = "white"),
+    #axis.text = element_blank(),
+    legend.key = element_rect(fill = "black")
+
+  )
+
+g1+g2
+```
+
+## Clusters divergentes indicador 2: mapas
+
+```{r}
+m1<-
+df_mapa_agrupado_divergentes_2 %>%
+  ggplot() +
+  geom_sf(data=estados, fill= NA) +
+  geom_sf(aes(geometry = geometry,  fill= media_indice), color=NA,  show.legend = TRUE) +
+  scale_fill_continuous_sequential(palette = "Heat 2")+
+  theme_void()+
+  theme(
+    panel.background = element_rect(fill = "black")
+  )+
+  labs(fill="Média")
+
+
+m2<-
+  df_mapa_agrupado_divergentes_2 %>%
+  ggplot() +
+  geom_sf(data=estados, fill= NA) +
+  geom_sf(aes(geometry = geometry,  fill= cv), color=NA,  show.legend = TRUE) +
+  scale_fill_continuous_sequential(palette = "Heat 2")+
+  theme_void()+
+  theme(
+    panel.background = element_rect(fill = "black")
+  )
+
+m1+m2
+
+```
+
+
+## Clusters convergentes indicador 3: distribuição
+
+```{r}
+#Estatísticas descritiva dos clusters
+
+clusters_espaciais_3<-
+  mapa_municipios[-2260,] %>%
+  inner_join(
+    dados_capag_2022 %>%
+      filter(indicador_3<10) %>%
+      rename(code_muni = cod_ibge)
+  )%>%
+  gera_clusters_espaciais(nome_coluna = "indicador_3")
+
+
+
+df_mapa_agrupado_convergentes_3<-
+  clusters_espaciais_3%>%
+  agrupa_mapa_id_referencia(sinal = 1, indicador = "indicador_3")
+
+
+
+##box-plot clusters convergentes
+g1<- df_mapa_agrupado_convergentes_3 %>%
+  mutate(grupo  = "convergente 3") %>%
+  ggplot() +
+  geom_boxplot(aes(x=grupo, y=media_indice))+
+  theme_light() +
+  theme(
+    #text = element_text(size=20),
+    panel.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    axis.title.x = element_blank(),
+    #axis.title.y = element_blank(),
+    strip.background = element_rect(fill = "#505050"),
+    strip.text = element_text(color = "white"),
+    #axis.text = element_blank(),
+    legend.key = element_rect(fill = "black")
+
+  ) +
+  labs(y="Média")
+
+
+g2<- df_mapa_agrupado_convergentes_3 %>%
+  mutate(grupo  = "convergente 3") %>%
+  ggplot() +
+  geom_boxplot(aes(x=grupo, y=cv))+
+  theme_light() +
+  theme(
+    #text = element_text(size=20),
+    panel.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    axis.title.x = element_blank(),
+    #axis.title.y = element_blank(),
+    strip.background = element_rect(fill = "#505050"),
+    strip.text = element_text(color = "white"),
+    #axis.text = element_blank(),
+    legend.key = element_rect(fill = "black")
+
+  )
+
+g1+g2
+```
+
+## Clusters convergentes indicador 2: mapas
+
+```{r}
+m1<-
+df_mapa_agrupado_convergentes_3 %>%
+  ggplot() +
+  geom_sf(data=estados, fill= NA) +
+  geom_sf(aes(geometry = geometry,  fill= media_indice), color=NA,  show.legend = TRUE) +
+  scale_fill_continuous_sequential(palette = "Heat 2")+
+  theme_void()+
+  theme(
+    panel.background = element_rect(fill = "black")
+  )+
+  labs(fill="Média")
+
+
+m2<-
+  df_mapa_agrupado_convergentes_3 %>%
+  ggplot() +
+  geom_sf(data=estados, fill= NA) +
+  geom_sf(aes(geometry = geometry,  fill= cv), color=NA,  show.legend = TRUE) +
+  scale_fill_continuous_sequential(palette = "Heat 2")+
+  theme_void()+
+  theme(
+    panel.background = element_rect(fill = "black")
+  )
+
+m1+m2
+
+```
+
+
+
+## Clusters divergentes indicador 3: distribuição
+
+```{r}
+#Estatísticas descritiva dos clusters
+
+
+
+df_mapa_agrupado_divergentes_3<-
+  clusters_espaciais_3%>%
+  agrupa_mapa_id_referencia(sinal = -1, indicador = "indicador_3")
+
+
+
+##box-plot clusters convergentes
+g1<- df_mapa_agrupado_divergentes_3 %>%
+  mutate(grupo  = "divergente 3") %>%
+  ggplot() +
+  geom_boxplot(aes(x=grupo, y=media_indice))+
+  theme_light() +
+  theme(
+    #text = element_text(size=20),
+    panel.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    axis.title.x = element_blank(),
+    #axis.title.y = element_blank(),
+    strip.background = element_rect(fill = "#505050"),
+    strip.text = element_text(color = "white"),
+    #axis.text = element_blank(),
+    legend.key = element_rect(fill = "black")
+
+  ) +
+  labs(y="Média")
+
+
+g2<- df_mapa_agrupado_divergentes_3 %>%
+  mutate(grupo  = "divergente 3") %>%
+  ggplot() +
+  geom_boxplot(aes(x=grupo, y=cv))+
+  theme_light() +
+  theme(
+    #text = element_text(size=20),
+    panel.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    axis.title.x = element_blank(),
+    #axis.title.y = element_blank(),
+    strip.background = element_rect(fill = "#505050"),
+    strip.text = element_text(color = "white"),
+    #axis.text = element_blank(),
+    legend.key = element_rect(fill = "black")
+
+  )
+
+g1+g2
+```
+
+## Clusters divergentes indicador 2: mapas
+
+```{r}
+m1<-
+df_mapa_agrupado_divergentes_3 %>%
+  ggplot() +
+  geom_sf(data=estados, fill= NA) +
+  geom_sf(aes(geometry = geometry,  fill= media_indice), color=NA,  show.legend = TRUE) +
+  scale_fill_continuous_sequential(palette = "Heat 2")+
+  theme_void()+
+  theme(
+    panel.background = element_rect(fill = "black")
+  )+
+  labs(fill="Média")
+
+
+m2<-
+  df_mapa_agrupado_divergentes_3 %>%
+  ggplot() +
+  geom_sf(data=estados, fill= NA) +
+  geom_sf(aes(geometry = geometry,  fill= cv), color=NA,  show.legend = TRUE) +
+  scale_fill_continuous_sequential(palette = "Heat 2")+
+  theme_void()+
+  theme(
+    panel.background = element_rect(fill = "black")
+  )
+
+m1+m2
+
+```
+
 
 When you click the **Render** button a presentation will be generated that includes both content and the output of embedded code. You can embed code like this:
 
