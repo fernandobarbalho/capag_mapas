@@ -1245,31 +1245,28 @@ ggplot(merged_data, aes(x = capag_oficial, y = nivel_hierarquico, fill = differe
 ```{r}
 residuo_teste_capag_regic %>%
   filter(capag_oficial == "A") %>%
-  filter(n<=-2 | n>=2) %>%   
+  filter(n<=-2 | n>=2) %>%
   mutate(rank = rank(-abs(n))) %>%
   mutate(ordem = as.factor(rank)) %>%
   mutate(ordem = fct_reorder(ordem, rank, .desc=TRUE) ) %>%
   ggplot(aes(x=n,y=ordem), color = "black")+
-  geom_col() +
-  geom_text(aes(label= str_wrap(nivel_hierarquico,10)),nudge_x = 0  , color = "white") +
+  geom_col(width = 0.7) +  # adjust width to increase space between bars
   geom_vline(xintercept = c(-2,2), color = "white") +
-  scale_fill_discrete_qualitative("Pastel 1")+
+  geom_text(aes(x=0, y=ordem, label=nivel_hierarquico), color = "white") +
   theme_light() +
   theme(
-    #text = element_text(size=20),
     panel.background = element_rect(fill = "black"),
     panel.grid = element_blank(),
     axis.title.x = element_blank(),
     axis.title.y = element_blank(),
     axis.text.y = element_blank(),
     legend.key = element_rect(fill = "black")
-    
   ) +
-  labs(title = "Resíduos relevantes - Nota CAPAG A")
+  labs(title = "Resíduos relevantes - Nota CAPAG não definida")
 
 ```
 
-## Mapa distribuição anormal nos estados - CAPAG A
+## Distribuição anormal nos níveis hierárquicos - Arranos populacionais x  CAPAG A
 
 ```{r}
 
@@ -1360,6 +1357,246 @@ sedes_municipios %>%
 m1+m2
 
 
+```
+
+
+
+## Distribuição anormal nos níveis hierárquicos - CAPAG não definido
+
+```{r}
+residuo_teste_capag_regic %>%
+  filter(capag_oficial == "n.d.") %>%
+  filter(n<=-2 | n>=2) %>%
+  mutate(rank = rank(-abs(n))) %>%
+  mutate(ordem = as.factor(rank)) %>%
+  mutate(ordem = fct_reorder(ordem, rank, .desc=TRUE) ) %>%
+  ggplot(aes(x=n,y=ordem), color = "black")+
+  geom_col(width = 0.7) +  # adjust width to increase space between bars
+  geom_vline(xintercept = c(-2,2), color = "white") +
+  geom_text(aes(x=0, y=ordem, label=nivel_hierarquico), color = "white") +
+  theme_light() +
+  theme(
+    panel.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    axis.text.y = element_blank(),
+    legend.key = element_rect(fill = "black")
+  ) +
+  labs(title = "Resíduos relevantes - Nota CAPAG não definida")
+
+
+```
+
+## Distribuição anormal nos níveis hierárquicos - Centros locais x  CAPAG n.d
+
+```{r}
+
+#Busca ufs relevantes para nota A com desvio padrão positivo
+
+niveis_nd<- 
+(residuo_teste_capag_regic %>%
+  filter(capag_oficial == "n.d.") %>%
+  filter(n>=2))$nivel_hierarquico 
+
+
+# Read the data
+data <- df_dados_regic_capag
+
+#monta dataframe com municipíos esperados
+
+df_sample_esperado<-
+purrr::map_dfr(niveis_nd, function(a_nivel){
+  quantidade<-
+    (data %>%
+    filter(tipo=="Esperado",
+           capag_oficial == "n.d.",
+           nivel_hierarquico == a_nivel))$n
+  
+  quantidade<- round(quantidade)
+  
+  
+  capag_regic_trabalho %>%
+    filter(capag_oficial == "A",
+           nh == a_nivel) %>%
+    slice_sample(n= quantidade)
+
+})
+
+
+
+m1<-
+sedes_municipios %>%
+  inner_join(
+    df_sample_esperado %>%
+      rename(code_muni = cod_cidade)
+  ) %>%
+  ggplot()+
+  geom_sf( pch=21, fill="#ff6600",  color="#ff6600", size= 0.5) +
+  #geom_sf(data = sedes,pch=21,  fill=point_color, color = point_color, size= 0.5 )+
+  geom_sf(data= estados, fill=NA, color="white") +
+  theme_light() +
+  theme(
+    panel.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    strip.background = element_rect(fill = "#505050"),
+    strip.text = element_text(color = "white"),
+    axis.text = element_blank(),
+    legend.key = element_rect(fill = "black")
+
+  )
+
+
+m2<-
+sedes_municipios %>%
+  inner_join(
+      capag_regic_trabalho %>%
+    filter(capag_oficial == "n.d.",
+           nh %in% niveis_nd) %>%
+      rename(code_muni = cod_cidade)
+  ) %>%
+  ggplot()+
+  geom_sf( pch=21, fill="#ff6600",  color="#ff6600", size= 0.5) +
+  #geom_sf(data = sedes,pch=21,  fill=point_color, color = point_color, size= 0.5 )+
+  geom_sf(data= estados, fill=NA, color="white") +
+  theme_light() +
+  theme(
+    #text = element_text(size=20),
+    panel.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    strip.background = element_rect(fill = "#505050"),
+    strip.text = element_text(color = "white"),
+    axis.text = element_blank(),
+    legend.key = element_rect(fill = "black")
+
+  )
+# 
+# 
+m1+m2
+
+
+```
+
+
+## Distribuição anormal nos níveis hierárquicos - CAPAG B
+
+```{r}
+residuo_teste_capag_regic %>%
+  filter(capag_oficial == "B") %>%
+  filter(n<=-2 | n>=2) %>%
+  mutate(rank = rank(-abs(n))) %>%
+  mutate(ordem = as.factor(rank)) %>%
+  mutate(ordem = fct_reorder(ordem, rank, .desc=TRUE) ) %>%
+  ggplot(aes(x=n,y=ordem), color = "black")+
+  geom_col(width = 0.7) +  # adjust width to increase space between bars
+  geom_vline(xintercept = c(-2,2), color = "white") +
+  geom_text(aes(x=0, y=ordem, label=nivel_hierarquico), color = "white") +
+  theme_light() +
+  theme(
+    panel.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    axis.text.y = element_blank(),
+    legend.key = element_rect(fill = "black")
+  ) +
+  labs(title = "Resíduos relevantes - Nota CAPAG não definida")
+
+
+```
+
+## Distribuição anormal nos níveis hierárquicos - Centro local x CAPAG B 
+
+```{r}
+#Busca ufs relevantes para nota não definida com desvio padrão negativo
+
+niveis_b<- 
+(residuo_teste_capag_regic %>%
+  filter(capag_oficial == "B") %>%
+  filter(n<=-2))$nivel_hierarquico 
+
+
+# Read the data
+data <- df_dados_regic_capag
+
+#monta dataframe com municipíos esperados
+
+df_sample_esperado<-
+purrr::map_dfr(niveis_b, function(a_nivel){
+  quantidade<-
+    (data %>%
+    filter(tipo=="Esperado",
+           capag_oficial == "B",
+           nivel_hierarquico == a_nivel))$n
+  
+  print(quantidade)
+  
+  quantidade<- round(quantidade)
+  
+  
+sedes_municipios %>%
+  inner_join(
+      capag_regic_trabalho %>%
+    filter(nh %in% niveis_b) %>%
+      slice_sample(n=quantidade) %>%
+      rename(code_muni = cod_cidade)
+  )
+})
+
+
+
+m1<-
+df_sample_esperado%>%
+  ggplot()+
+  geom_sf( pch=21, fill="#ff6600",  color="#ff6600", size= 0.5) +
+  #geom_sf(data = sedes,pch=21,  fill=point_color, color = point_color, size= 0.5 )+
+  geom_sf(data= estados, fill=NA, color="white") +
+  theme_light() +
+  theme(
+    panel.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    strip.background = element_rect(fill = "#505050"),
+    strip.text = element_text(color = "white"),
+    axis.text = element_blank(),
+    legend.key = element_rect(fill = "black")
+
+  )
+
+
+m2<-
+sedes_municipios %>%
+  inner_join(
+      capag_regic_trabalho %>%
+    filter(capag_oficial == "B",
+           nh %in% niveis_b) %>%
+      rename(code_muni = cod_cidade)
+  ) %>%
+  ggplot()+
+  geom_sf( pch=21, fill="#ff6600",  color="#ff6600", size= 0.5) +
+  #geom_sf(data = sedes,pch=21,  fill=point_color, color = point_color, size= 0.5 )+
+  geom_sf(data= estados, fill=NA, color="white") +
+  theme_light() +
+  theme(
+    #text = element_text(size=20),
+    panel.background = element_rect(fill = "black"),
+    panel.grid = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    strip.background = element_rect(fill = "#505050"),
+    strip.text = element_text(color = "white"),
+    axis.text = element_blank(),
+    legend.key = element_rect(fill = "black")
+
+  )
+# 
+# 
+m1+m2
 ```
 
 
