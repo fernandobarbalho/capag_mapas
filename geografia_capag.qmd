@@ -203,7 +203,7 @@ residuo_teste %>%
 
 ```
 
-## Mapas distribuição desproporicional nos estados - CAPAG A
+## Mapas distribuição desproporicional nos estados - CAPAG A (estados positivamente associados)
 
 -   Na comparação entre mapas observa-se adensamento de nuvens de pontos principalmente no Noroeste do RS e Oeste de SC
 
@@ -306,7 +306,9 @@ m1+m2
 
 ```
 
-## Mapa distribuição anormal nos estados - CAPAG A
+## Mapas distribuição anormal nos estados - CAPAG A
+
+- O zoom nos mapas do RS deixam mais claro o adensamento
 
 ```{r}
 m1<-
@@ -331,7 +333,12 @@ sedes_municipios %>%
     axis.text = element_blank(),
     legend.key = element_rect(fill = "black")
 
+  )+
+  labs(
+    title = "Um mapa esperado",
+    caption = "Mapa aleatório com número de pontos esperado"
   )
+
 
 
 m2<-
@@ -358,6 +365,10 @@ sedes_municipios %>%
     axis.text = element_blank(),
     legend.key = element_rect(fill = "black")
 
+  )+
+  labs(
+    title = "Mapa observado",
+    caption = "Mapa com os dados efetivamente observados"
   )
 # 
 # 
@@ -365,7 +376,9 @@ m1+m2
 
 ```
 
-## Mapa distribuição anormal nos estados - CAPAG A
+## Mapa distribuição desproporcional nos estados - CAPAG A (estados negativamente associados)
+
+- O efeito de oito dos nove estados do NE estarem negativamente associados à nota A é notório na comparação dos mapas
 
 ```{r}
 #Busca ufs relevantes para nota A com desvio padrão negativo
@@ -417,7 +430,13 @@ df_sample_esperado%>%
     axis.text = element_blank(),
     legend.key = element_rect(fill = "black")
 
+  )+
+  labs(
+    title = "Um mapa esperado",
+    caption = "Mapa aleatório com número de pontos esperado"
   )
+
+
 
 
 m2<-
@@ -444,6 +463,10 @@ sedes_municipios %>%
     axis.text = element_blank(),
     legend.key = element_rect(fill = "black")
 
+  )+
+  labs(
+    title = "Mapa observado",
+    caption = "Mapa com os dados efetivamente observados"
   )
 # 
 # 
@@ -451,7 +474,9 @@ m1+m2
 
 ```
 
-## Mapa distribuição anormal nos estados - CAPAG A
+## Mapa distribuição desproporicional nos estados - CAPAG A
+
+- Um zoom na Bahia
 
 ```{r}
 
@@ -474,7 +499,13 @@ df_sample_esperado%>%
     axis.text = element_blank(),
     legend.key = element_rect(fill = "black")
 
+  )+
+  labs(
+    title = "Um mapa esperado",
+    caption = "Mapa aleatório com número de pontos esperado"
   )
+
+
 
 
 m2<-
@@ -501,13 +532,20 @@ sedes_municipios %>%
     axis.text = element_blank(),
     legend.key = element_rect(fill = "black")
 
+  )+
+  labs(
+    title = "Mapa observado",
+    caption = "Mapa com os dados efetivamente observados"
   )
 # 
 # 
 m1+m2
 ```
 
-## Distribuição nos estados - CAPAG B
+## Distribuição desproporcional nos estados - CAPAG B
+
+- Seis estados estão positivamente associados à nota B
+- Oito estados estão negativamente associados à nota B
 
 ```{r}
 residuo_teste %>%
@@ -536,7 +574,9 @@ residuo_teste %>%
 
 ```
 
-## Mapa distribuição anormal nos estados - CAPAG B
+## Mapa distribuição desproporcional nos estados - CAPAG B (estados positivamente associados)
+
+- Observa-se um maior adensamento de pontos em todo estado de SC na comparação entre os dois mapas
 
 ```{r}
 #Busca ufs relevantes para nota B com desvio padrão positivo
@@ -593,7 +633,12 @@ sedes_municipios %>%
     axis.text = element_blank(),
     legend.key = element_rect(fill = "black")
 
+  )+
+  labs(
+    title = "Um mapa esperado",
+    caption = "Mapa aleatório com número de pontos esperado"
   )
+
 
 
 m2<-
@@ -620,13 +665,19 @@ sedes_municipios %>%
     axis.text = element_blank(),
     legend.key = element_rect(fill = "black")
 
+  )+
+  labs(
+    title = "Mapa observado",
+    caption = "Mapa com os dados efetivamente observados"
   )
 # 
 # 
 m1+m2
 ```
 
-## Mapa distribuição anormal nos estados - CAPAG B
+## Mapa distribuição anormal nos estados - CAPAG B (estados negativamente associados)
+
+- É fácil observar a redução do número de pontos em PA, TO e GO
 
 ```{r}
 #Busca ufs relevantes para nota B com desvio padrão negativo
@@ -678,6 +729,10 @@ df_sample_esperado%>%
     axis.text = element_blank(),
     legend.key = element_rect(fill = "black")
 
+  )+
+  labs(
+    title = "Um mapa esperado",
+    caption = "Mapa aleatório com número de pontos esperado"
   )
 
 
@@ -705,6 +760,10 @@ sedes_municipios %>%
     axis.text = element_blank(),
     legend.key = element_rect(fill = "black")
 
+  )+
+  labs(
+    title = "Mapa observado",
+    caption = "Mapa com os dados efetivamente observados"
   )
 # 
 # 
@@ -712,6 +771,9 @@ m1+m2
 ```
 
 ## Distribuição nos estados - CAPAG C
+
+- 11 estados positivamente associados à nota C
+- 10 estados negativamente associados à nota C
 
 ```{r}
 residuo_teste %>%
@@ -739,7 +801,10 @@ residuo_teste %>%
   labs(title = "Resíduos relevantes - Nota CAPAG C")
 ```
 
-## Mapa distribuição anormal nos estados - CAPAG C
+## Mapa distribuição desproporcional nos estados - CAPAG C (estados positivamente associados)
+
+- Oito dos nove estados do Nordeste positivamente associados à CAPAG C
+
 
 ```{r}
 #Busca ufs relevantes para nota B com desvio padrão positivo
@@ -796,6 +861,10 @@ sedes_municipios %>%
     axis.text = element_blank(),
     legend.key = element_rect(fill = "black")
 
+  )+
+  labs(
+    title = "Um mapa esperado",
+    caption = "Mapa aleatório com número de pontos esperado"
   )
 
 
@@ -823,13 +892,19 @@ sedes_municipios %>%
     axis.text = element_blank(),
     legend.key = element_rect(fill = "black")
 
+  )+
+  labs(
+    title = "Mapa observado",
+    caption = "Mapa com os dados efetivamente observados"
   )
 # 
 # 
 m1+m2
 ```
 
-## Mapa distribuição anormal nos estados - CAPAG C
+## Mapa distribuição desproporcional nos estados - CAPAG C (estados negativamente associados)
+
+- A redução do número de pontos é facilmente verificável para MG, SC e SP
 
 ```{r}
 #Busca ufs relevantes para nota B com desvio padrão negativo
@@ -881,6 +956,10 @@ df_sample_esperado%>%
     axis.text = element_blank(),
     legend.key = element_rect(fill = "black")
 
+  )+
+  labs(
+    title = "Um mapa esperado",
+    caption = "Mapa aleatório com número de pontos esperado"
   )
 
 
@@ -908,6 +987,10 @@ sedes_municipios %>%
     axis.text = element_blank(),
     legend.key = element_rect(fill = "black")
 
+  )+
+  labs(
+    title = "Mapa observado",
+    caption = "Mapa com os dados efetivamente observados"
   )
 # 
 # 
@@ -943,7 +1026,7 @@ residuo_teste %>%
   labs(title = "Resíduos relevantes - Nota CAPAG D")
 ```
 
-## Distribuição nos estados - CAPAG não determinada
+## Distribuição nos estados - CAPAG não determinada 
 
 ```{r}
 residuo_teste %>%
@@ -971,7 +1054,9 @@ residuo_teste %>%
   labs(title = "Resíduos relevantes - Nota CAPAG não determinada")
 ```
 
-## Mapa distribuição anormal nos estados - Nota não definida
+## Mapa distribuição desproporcional nos estados - Nota não definida (estdos positivamente associados)
+
+- Observa-se com facilidade o expressivo aumento do número de pontos principalmente em Goiás
 
 ```{r}
 #Busca ufs relevantes para nota B com desvio padrão positivo
@@ -1028,7 +1113,12 @@ sedes_municipios %>%
     axis.text = element_blank(),
     legend.key = element_rect(fill = "black")
 
+  )+
+  labs(
+    title = "Um mapa esperado",
+    caption = "Mapa aleatório com número de pontos esperado"
   )
+
 
 
 m2<-
@@ -1055,6 +1145,10 @@ sedes_municipios %>%
     axis.text = element_blank(),
     legend.key = element_rect(fill = "black")
 
+  )+
+  labs(
+    title = "Mapa observado",
+    caption = "Mapa com os dados efetivamente observados"
   )
 # 
 # 
