@@ -29,6 +29,8 @@ regic_trabalho<- rio::import("regic_trabalho.RDS")
 
 ## Distribuição das notas
 
+-   Número de municípios com notas não atribuídas só é inferior ao número de municípios com nota B
+
 ```{r}
 dados_capag_2022 %>%
   ggplot() +
@@ -48,7 +50,12 @@ dados_capag_2022 %>%
 
 ## Distribuição nos estados - ranking total
 
+-   A proporção de notas A tem destaque no RS
+-   Proporções importantes de notas não definidas em GO, TO e PA
+
 ```{r}
+
+g1<-
 dados_capag_2022 %>%
   summarise(.by = c("uf","capag_oficial"),
             quantidade = n()) %>%
@@ -65,11 +72,8 @@ dados_capag_2022 %>%
     legend.key = element_rect(fill = "black")
     
   )
-```
 
-## Distribuição nos estados - proporção notas
-
-```{r}
+g2<-
 dados_capag_2022 %>%
   summarise(.by = c("uf","capag_oficial"),
             quantidade = n()) %>%
@@ -86,9 +90,14 @@ dados_capag_2022 %>%
     legend.key = element_rect(fill = "black")
     
   )
+
+g1+g2
 ```
 
-## Distribuição anormal nos estados
+## Distribuição desproporcional nos estados
+
+-   57% das combinações possíveis entre estados e categorias de notas estão associadas a resíduos padronizados significativos
+-   Esse achado pode indicar associação entre aspectos regionais e comportamento fiscal medido pela CAPAG
 
 ```{r}
 
@@ -129,7 +138,10 @@ residuo_teste %>%
 
 ```
 
-## Distribuição anormal nos estados - Diferenças
+## Distribuição desproporcional nos estados - Diferenças
+
+-   A combinação RS-Nota A aparece com a maior diferença positiva entre esperado e observado no teste estatístico
+-   Outra combinação com diferença positiva importante é GO-n.d
 
 ```{r}
 
@@ -159,7 +171,10 @@ ggplot(merged_data, aes(x = capag_oficial, y = uf, fill = difference)) +
 
 ```
 
-## Distribuição anormal nos estados - CAPAG A
+## Distribuição desproporcional nos estados - CAPAG A
+
+-   Oito estados estão positivamente associados a CAPAG A
+-   Treze estados estão negativamente associados a CAPAG A
 
 ```{r}
 residuo_teste %>%
@@ -188,7 +203,9 @@ residuo_teste %>%
 
 ```
 
-## Mapa distribuição anormal nos estados - CAPAG A
+## Mapas distribuição desproporicional nos estados - CAPAG A
+
+-   Na comparação entre mapas observa-se adensamento de nuvens de pontos principalmente no Noroeste do RS e Oeste de SC
 
 ```{r}
 
@@ -246,6 +263,10 @@ sedes_municipios %>%
     axis.text = element_blank(),
     legend.key = element_rect(fill = "black")
 
+  ) +
+  labs(
+    title = "Um mapa esperado",
+    caption = "Mapa aleatório com número de pontos esperado"
   )
 
 
@@ -273,6 +294,10 @@ sedes_municipios %>%
     axis.text = element_blank(),
     legend.key = element_rect(fill = "black")
 
+  )+
+  labs(
+    title = "Mapa observado",
+    caption = "Mapa com os dados efetivamente observados"
   )
 # 
 # 
@@ -482,7 +507,6 @@ sedes_municipios %>%
 m1+m2
 ```
 
-
 ## Distribuição nos estados - CAPAG B
 
 ```{r}
@@ -687,8 +711,6 @@ sedes_municipios %>%
 m1+m2
 ```
 
-
-
 ## Distribuição nos estados - CAPAG C
 
 ```{r}
@@ -716,7 +738,6 @@ residuo_teste %>%
   ) +
   labs(title = "Resíduos relevantes - Nota CAPAG C")
 ```
-
 
 ## Mapa distribuição anormal nos estados - CAPAG C
 
@@ -808,8 +829,8 @@ sedes_municipios %>%
 m1+m2
 ```
 
-
 ## Mapa distribuição anormal nos estados - CAPAG C
+
 ```{r}
 #Busca ufs relevantes para nota B com desvio padrão negativo
 
@@ -893,7 +914,6 @@ sedes_municipios %>%
 m1+m2
 
 ```
-
 
 ## Distribuição nos estados - CAPAG D
 
@@ -1126,7 +1146,6 @@ sedes_municipios %>%
 m1+m2
 ```
 
-
 ## Distribuição por hierarquia de Regiões de influência
 
 ```{r}
@@ -1267,7 +1286,7 @@ residuo_teste_capag_regic %>%
 
 ```
 
-## Distribuição anormal nos níveis hierárquicos - Arranos populacionais x  CAPAG A
+## Distribuição anormal nos níveis hierárquicos - Arranos populacionais x CAPAG A
 
 ```{r}
 
@@ -1360,8 +1379,6 @@ m1+m2
 
 ```
 
-
-
 ## Distribuição anormal nos níveis hierárquicos - CAPAG não definido
 
 ```{r}
@@ -1389,7 +1406,7 @@ residuo_teste_capag_regic %>%
 
 ```
 
-## Distribuição anormal nos níveis hierárquicos - Centros locais x  CAPAG n.d
+## Distribuição anormal nos níveis hierárquicos - Centros locais x CAPAG n.d
 
 ```{r}
 
@@ -1482,7 +1499,6 @@ m1+m2
 
 ```
 
-
 ## Distribuição anormal nos níveis hierárquicos - CAPAG B
 
 ```{r}
@@ -1510,7 +1526,7 @@ residuo_teste_capag_regic %>%
 
 ```
 
-## Distribuição anormal nos níveis hierárquicos - Centro local x CAPAG B 
+## Distribuição anormal nos níveis hierárquicos - Centro local x CAPAG B
 
 ```{r}
 #Busca ufs relevantes para nota não definida com desvio padrão negativo
@@ -1597,7 +1613,6 @@ sedes_municipios %>%
 # 
 m1+m2
 ```
-
 
 ## Distribuição por clusters espaciais
 
@@ -1807,7 +1822,6 @@ agrupa_mapa_id_referencia<- function(.data, a_uf="", sinal=0, indicador){
 
 ```
 
-
 ## Clusters convergentes indicador 1: distribuição
 
 ```{r}
@@ -1903,8 +1917,6 @@ m1+m2
 
 ```
 
-
-
 ## Clusters divergentes indicador 1: distribuição
 
 ```{r}
@@ -1990,8 +2002,6 @@ m2<-
 m1+m2
 
 ```
-
-
 
 ## Clusters convergentes indicador 2: distribuição
 
@@ -2088,8 +2098,6 @@ m1+m2
 
 ```
 
-
-
 ## Clusters divergentes indicador 2: distribuição
 
 ```{r}
@@ -2175,7 +2183,6 @@ m2<-
 m1+m2
 
 ```
-
 
 ## Clusters convergentes indicador 3: distribuição
 
@@ -2272,8 +2279,6 @@ m1+m2
 
 ```
 
-
-
 ## Clusters divergentes indicador 3: distribuição
 
 ```{r}
@@ -2329,7 +2334,7 @@ g2<- df_mapa_agrupado_divergentes_3 %>%
 g1+g2
 ```
 
-## Clusters divergentes indicador 2: mapas
+## Clusters divergentes indicador 3: mapas
 
 ```{r}
 m1<-
@@ -2360,9 +2365,7 @@ m1+m2
 
 ```
 
-
-
-## Dados ausentes para o indicador 3 e população 
+## Dados ausentes para o indicador 3 e população
 
 ```{r}
 library(rpart)
@@ -2385,5 +2388,3 @@ fit <- rpart(Indicador_3_Missing ~ ., data=data_tree_view, method="class")
 rpart.plot(fit, extra=101)
 
 ```
-
-
