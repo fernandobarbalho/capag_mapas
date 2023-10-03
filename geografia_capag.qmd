@@ -13,6 +13,7 @@ library(colorspace)
 library(patchwork)
 library(reshape2)
 library(sf)
+library(spdep)
 
 
 mapa_municipios<- rio::import("mapa_municipios.RDS")
@@ -1598,11 +1599,6 @@ m1+m2
 ```
 
 
-When you click the **Render** button a document will be generated that includes:
-
--   Content authored with markdown
--   Output from executable code
-
 ## Distribuição por clusters espaciais
 
 ```{r}
@@ -2365,8 +2361,29 @@ m1+m2
 ```
 
 
-When you click the **Render** button a presentation will be generated that includes both content and the output of embedded code. You can embed code like this:
 
-## Riscos e população
+## Dados ausentes para o indicador 3 e população 
 
-When you click the **Render** button a presentation will be generated that includes both content and the output of embedded code. You can embed code like this:
+```{r}
+library(rpart)
+library(rpart.plot)
+
+# Load the data
+# Create a binary target column for missing values in Indicador_3
+dados_capag_2022$Indicador_3_Missing <- as.integer(is.na(dados_capag_2022$indicador_3))
+
+# Prepare the dataset
+# Drop the Indicador_3 and Município columns
+data_tree_view <- dados_capag_2022[, (names(dados_capag_2022) %in% c("uf", "populacao", "nota_1", "nota_2", "Indicador_3_Missing"))]
+
+
+
+# Generate the decision tree
+fit <- rpart(Indicador_3_Missing ~ ., data=data_tree_view, method="class")
+
+# Plot the decision tree
+rpart.plot(fit, extra=101)
+
+```
+
+
