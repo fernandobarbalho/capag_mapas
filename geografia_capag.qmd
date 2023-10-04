@@ -1155,7 +1155,10 @@ sedes_municipios %>%
 m1+m2
 ```
 
-## Mapa distribuição anormal nos estados - Nota não definida
+## Mapa distribuição desproporcional nos estados - Nota não definida (estdos negativamente associados)
+
+- Baixo adensamento de pontos no RS e em SC na comparação entre os mapas
+- Quase ausência de pontos no ES no mapa da direita
 
 ```{r}
 #Busca ufs relevantes para nota não definida com desvio padrão negativo
@@ -1207,7 +1210,12 @@ df_sample_esperado%>%
     axis.text = element_blank(),
     legend.key = element_rect(fill = "black")
 
+  )+
+  labs(
+    title = "Um mapa esperado",
+    caption = "Mapa aleatório com número de pontos esperado"
   )
+
 
 
 m2<-
@@ -1234,6 +1242,10 @@ sedes_municipios %>%
     axis.text = element_blank(),
     legend.key = element_rect(fill = "black")
 
+  )+
+  labs(
+    title = "Mapa observado",
+    caption = "Mapa com os dados efetivamente observados"
   )
 # 
 # 
@@ -1241,6 +1253,9 @@ m1+m2
 ```
 
 ## Distribuição por hierarquia de Regiões de influência
+
+- 34% das combinações estão associadas a resíduos relevantes
+- No geral não há fortes ligações entre aspectos de influência e gestão e notas CAPAG 
 
 ```{r}
 capag_regic<-
@@ -1295,7 +1310,9 @@ residuo_teste_capag_regic %>%
 
 ```
 
-## Distribuição anormal nos estados - Diferenças
+## Distribuição desprorcionais nos níveis REGIC - Diferenças
+
+- Centros locais se destacam nas diferenças positivas (.n.d.) e negativas (nota B) 
 
 ```{r}
 
@@ -1356,6 +1373,8 @@ ggplot(merged_data, aes(x = capag_oficial, y = nivel_hierarquico, fill = differe
 
 ## Distribuição anormal nos níveis hierárquicos - CAPAG A
 
+- Arranjos populacionais caracterizados pela gravitação em torno de um polo destaca-se na nota A
+
 ```{r}
 residuo_teste_capag_regic %>%
   filter(capag_oficial == "A") %>%
@@ -1380,7 +1399,9 @@ residuo_teste_capag_regic %>%
 
 ```
 
-## Distribuição anormal nos níveis hierárquicos - Arranos populacionais x CAPAG A
+## Distribuição anormal nos níveis hierárquicos - Arranjos populacionais x CAPAG A
+
+- Pela proximidades dos pontos não é possível perceber no mapa completo do Brasil o contraste entre os o observado e esperado, mas a associação positiva desse tipo de município indica a possibilidade de se analisar clusters espaciais como relevante para a construção de notas CAPAG
 
 ```{r}
 
@@ -1438,6 +1459,10 @@ sedes_municipios %>%
     axis.text = element_blank(),
     legend.key = element_rect(fill = "black")
 
+  )+
+  labs(
+    title = "Um mapa esperado",
+    caption = "Mapa aleatório com número de pontos esperado"
   )
 
 
@@ -1465,6 +1490,10 @@ sedes_municipios %>%
     axis.text = element_blank(),
     legend.key = element_rect(fill = "black")
 
+  )+
+  labs(
+    title = "Mapa observado",
+    caption = "Mapa com os dados efetivamente observados"
   )
 # 
 # 
@@ -1474,6 +1503,8 @@ m1+m2
 ```
 
 ## Distribuição anormal nos níveis hierárquicos - CAPAG não definido
+
+- Contraste forte entre os centos locais e os outros níveis indicando associação positiva entre Centros Locais e .n.d.
 
 ```{r}
 residuo_teste_capag_regic %>%
@@ -1500,7 +1531,9 @@ residuo_teste_capag_regic %>%
 
 ```
 
-## Distribuição anormal nos níveis hierárquicos - Centros locais x CAPAG n.d
+## Distribuição desproporcional nos níveis hierárquicos - Centros locais x CAPAG n.d
+
+- Em todo o território nacional os centos locais apresentam-se como destaque na não determinação de notas de CAPAG
 
 ```{r}
 
@@ -1558,7 +1591,12 @@ sedes_municipios %>%
     axis.text = element_blank(),
     legend.key = element_rect(fill = "black")
 
+  )+
+  labs(
+    title = "Um mapa esperado",
+    caption = "Mapa aleatório com número de pontos esperado"
   )
+
 
 
 m2<-
@@ -1585,6 +1623,10 @@ sedes_municipios %>%
     axis.text = element_blank(),
     legend.key = element_rect(fill = "black")
 
+  )+
+  labs(
+    title = "Mapa observado",
+    caption = "Mapa com os dados efetivamente observados"
   )
 # 
 # 
@@ -1593,7 +1635,9 @@ m1+m2
 
 ```
 
-## Distribuição anormal nos níveis hierárquicos - CAPAG B
+## Distribuição desproporcional nos níveis hierárquicos - CAPAG B
+
+- Novamente os centros locais se destacam na comparação com outros níveis hierárquicos. Dessa vez com sinal negativo
 
 ```{r}
 residuo_teste_capag_regic %>%
@@ -1620,7 +1664,9 @@ residuo_teste_capag_regic %>%
 
 ```
 
-## Distribuição anormal nos níveis hierárquicos - Centro local x CAPAG B
+## Distribuição desproporcional nos níveis hierárquicos - Centro local x CAPAG B
+
+- O contraste entre um mapa aleatório esperado e  mapa observado mostra redução do número de pontos referentes a centros locais em todo o Brasil 
 
 ```{r}
 #Busca ufs relevantes para nota não definida com desvio padrão negativo
@@ -1675,7 +1721,12 @@ df_sample_esperado%>%
     axis.text = element_blank(),
     legend.key = element_rect(fill = "black")
 
+  )+
+  labs(
+    title = "Um mapa esperado",
+    caption = "Mapa aleatório com número de pontos esperado"
   )
+
 
 
 m2<-
@@ -1702,6 +1753,10 @@ sedes_municipios %>%
     axis.text = element_blank(),
     legend.key = element_rect(fill = "black")
 
+  )+
+  labs(
+    title = "Mapa observado",
+    caption = "Mapa com os dados efetivamente observados"
   )
 # 
 # 
@@ -1918,6 +1973,10 @@ agrupa_mapa_id_referencia<- function(.data, a_uf="", sinal=0, indicador){
 
 ## Clusters convergentes indicador 1: distribuição
 
+- Valores de média dos indicadores 1 para cada cluster bem distribuídos no box-plot
+- Mediana de Coeficiente de Variação baixa mas com outliers importantes
+
+
 ```{r}
 #Estatísticas descritiva dos clusters
 
@@ -1981,6 +2040,8 @@ g1+g2
 ```
 
 ## Clusters convergentes indicador 1: mapas
+- Vários clusters convergentes no CE e BA
+- Clusters convergentes com baixo indicador em MG e no MA
 
 ```{r}
 m1<-
@@ -2012,6 +2073,8 @@ m1+m2
 ```
 
 ## Clusters divergentes indicador 1: distribuição
+- Distribuição desequilibrada das médias com mediana menor do que o dos clusters convergentes.
+- Coeficiente de variação bem maisl elevado que os clusters divergentes
 
 ```{r}
 #Estatísticas descritiva dos clusters
@@ -2067,6 +2130,7 @@ g1+g2
 ```
 
 ## Clusters divergentes indicador 1: mapas
+- Clusters divergentes com grande coeficiente de variação no Piauí e Maranhão
 
 ```{r}
 m1<-
@@ -2098,6 +2162,10 @@ m1+m2
 ```
 
 ## Clusters convergentes indicador 2: distribuição
+
+- Box-plots de média e CV com intervalos interquatis bastante concentrados
+- Baixo CV 
+- Médias elevadas
 
 ```{r}
 #Estatísticas descritiva dos clusters
@@ -2163,6 +2231,8 @@ g1+g2
 
 ## Clusters convergentes indicador 2: mapas
 
+- Poucas ocorrências de clusters espaciais concentrados principalmente na região Norte
+
 ```{r}
 m1<-
 df_mapa_agrupado_convergentes_2 %>%
@@ -2193,6 +2263,11 @@ m1+m2
 ```
 
 ## Clusters divergentes indicador 2: distribuição
+
+- Box plots com grande dispersão
+- Médias ainda mais elevadas do que os clusters convergentes
+- CVs também com valores mais elevados que os clusters convergentes
+
 
 ```{r}
 #Estatísticas descritiva dos clusters
@@ -2249,6 +2324,7 @@ g1+g2
 
 ## Clusters divergentes indicador 2: mapas
 
+- Poucas ocorrências no Brasil
 ```{r}
 m1<-
 df_mapa_agrupado_divergentes_2 %>%
@@ -2279,6 +2355,9 @@ m1+m2
 ```
 
 ## Clusters convergentes indicador 3: distribuição
+
+- Box plots revelam grande dispersão de média e CV
+- Médias elevadas
 
 ```{r}
 #Estatísticas descritiva dos clusters
@@ -2342,7 +2421,10 @@ g2<- df_mapa_agrupado_convergentes_3 %>%
 g1+g2
 ```
 
-## Clusters convergentes indicador 2: mapas
+## Clusters convergentes indicador 3: mapas
+
+- Clusters com maior ocorrência no Nordeste
+- Nenhuma ocorrência no Sul
 
 ```{r}
 m1<-
@@ -2374,6 +2456,9 @@ m1+m2
 ```
 
 ## Clusters divergentes indicador 3: distribuição
+
+- Box-plots com grandes dispersões
+- Média e CV bem mais elevados do que os clusters convergentes
 
 ```{r}
 #Estatísticas descritiva dos clusters
@@ -2430,6 +2515,8 @@ g1+g2
 
 ## Clusters divergentes indicador 3: mapas
 
+- Clusters espalhados pelo Norte, Nordeste e MG
+
 ```{r}
 m1<-
 df_mapa_agrupado_divergentes_3 %>%
@@ -2460,6 +2547,9 @@ m1+m2
 ```
 
 ## Dados ausentes para o indicador 3 e população
+
+- Número muito grande de valores ausentes para o indicador 3 (1231 ocorrências)
+- Associação importante do fenômeno com municípios de menor possivlelmente há um gatilho para populações menores que 68 mil habitantes
 
 ```{r}
 library(rpart)
