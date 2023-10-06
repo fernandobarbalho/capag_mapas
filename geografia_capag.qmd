@@ -18,6 +18,7 @@ library(spdep)
 
 mapa_municipios<- rio::import("mapa_municipios.RDS")
 sedes_municipios<- rio::import("sedes_municipios.RDS")
+brasil<- geobr::read_country()
 estados<- rio::import("estados.RDS")
 brasil<- rio::import("brasil.RDS")
 ibge2022<- rio::import("ibge2022.RDS")
@@ -1447,7 +1448,7 @@ sedes_municipios %>%
   ggplot()+
   geom_sf( pch=21, fill="#ff6600",  color="#ff6600", size= 0.5) +
   #geom_sf(data = sedes,pch=21,  fill=point_color, color = point_color, size= 0.5 )+
-  geom_sf(data= estados, fill=NA, color="white") +
+  geom_sf(data= brasil, fill=NA, color="white") +
   theme_light() +
   theme(
     panel.background = element_rect(fill = "black"),
@@ -1477,7 +1478,7 @@ sedes_municipios %>%
   ggplot()+
   geom_sf( pch=21, fill="#ff6600",  color="#ff6600", size= 0.5) +
   #geom_sf(data = sedes,pch=21,  fill=point_color, color = point_color, size= 0.5 )+
-  geom_sf(data= estados, fill=NA, color="white") +
+  geom_sf(data= brasil, fill=NA, color="white") +
   theme_light() +
   theme(
     #text = element_text(size=20),
@@ -1579,7 +1580,7 @@ sedes_municipios %>%
   ggplot()+
   geom_sf( pch=21, fill="#ff6600",  color="#ff6600", size= 0.5) +
   #geom_sf(data = sedes,pch=21,  fill=point_color, color = point_color, size= 0.5 )+
-  geom_sf(data= estados, fill=NA, color="white") +
+  geom_sf(data= brasil, fill=NA, color="white") +
   theme_light() +
   theme(
     panel.background = element_rect(fill = "black"),
@@ -1610,7 +1611,7 @@ sedes_municipios %>%
   ggplot()+
   geom_sf( pch=21, fill="#ff6600",  color="#ff6600", size= 0.5) +
   #geom_sf(data = sedes,pch=21,  fill=point_color, color = point_color, size= 0.5 )+
-  geom_sf(data= estados, fill=NA, color="white") +
+  geom_sf(data= brasil, fill=NA, color="white") +
   theme_light() +
   theme(
     #text = element_text(size=20),
@@ -1709,7 +1710,7 @@ df_sample_esperado%>%
   ggplot()+
   geom_sf( pch=21, fill="#ff6600",  color="#ff6600", size= 0.5) +
   #geom_sf(data = sedes,pch=21,  fill=point_color, color = point_color, size= 0.5 )+
-  geom_sf(data= estados, fill=NA, color="white") +
+  geom_sf(data= brasil, fill=NA, color="white") +
   theme_light() +
   theme(
     panel.background = element_rect(fill = "black"),
@@ -1740,7 +1741,7 @@ sedes_municipios %>%
   ggplot()+
   geom_sf( pch=21, fill="#ff6600",  color="#ff6600", size= 0.5) +
   #geom_sf(data = sedes,pch=21,  fill=point_color, color = point_color, size= 0.5 )+
-  geom_sf(data= estados, fill=NA, color="white") +
+  geom_sf(data= brasil, fill=NA, color="white") +
   theme_light() +
   theme(
     #text = element_text(size=20),
