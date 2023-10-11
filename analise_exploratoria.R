@@ -37,6 +37,37 @@ model <- glm(Indicador_3_Missing ~ ., data=data_tree_view, family=binomial())
 # View the summary of the model
 summary(model)
 
+# Example coefficients (replace these values with your own)
+coefficients <- c(
+  ufAL=1.084, ufAM=0.7016, ufAP=0.2323, ufBA=0.1697, ufCE=0.1394,
+  ufES=-2.424, ufGO=1.355, ufMA=0.8154, ufMG=0.9493, ufMS=0.2023,
+  ufMT=0.1854, ufPA=2.318, ufPB=0.269, ufPE=0.4115, ufPI=0.278,
+  ufPR=0.1065, ufRJ=1.206, ufRN=-0.3822, ufRO=-0.4282, ufRR=-0.8339,
+  ufRS=-0.7683, ufSC=-0.7709, ufSE=-0.003936, ufSP=1.144, ufTO=1.488,
+  populacao=-0.000008859, nota_1B=0.1037, nota_1C=0.3842, nota_2B=-0.05007,
+  nota_2C=0.3119, nota_2n.d.=-0.3219
+)
+
+# Create a data frame of the coefficients for easier plotting
+coeff_df <- data.frame(Variable = names(coefficients), Coefficient = as.numeric(coefficients))
+coeff_df <- coeff_df[order(coeff_df$Coefficient),]
+
+# Plotting
+library(ggplot2)
+
+ggplot(coeff_df, aes(x=Variable, y=Coefficient)) +
+  geom_col(aes(fill=(Coefficient > 0)), show.legend=F) +
+  geom_hline(yintercept=0, linetype="dashed", color="red") +
+  coord_flip() +
+  theme_minimal() +
+  labs(
+    title="Coefficient Plot for Logistic Regression Analysis",
+    x="Variable",
+    y="Coefficient Value"
+  ) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
 
 
 dados_capag_2022 %>%
@@ -385,3 +416,31 @@ capag_regic_trabalho %>%
   ggplot() +
   geom_bar(aes(y=capag_oficial))
 
+
+
+###########Análise de effect size
+
+library(vcd)
+
+# Example data
+data_test <- matrix(c(10, 20, 30, 40), nrow = 2)
+
+# Chi-square test
+chi2 <- chisq.test(data_test)
+
+# Cramér's V
+assocstats(data_test)$cramer
+
+
+teste_chi_capag_regic<-
+  chisq.test(capag_regic_trabalho$nh, capag_regic_trabalho$capag_oficial,  simulate.p.value = TRUE)
+
+assocstats(as.matrix(teste_chi_capag_regic[["observed"]]) )
+
+assocstats(as.matrix(teste_chi[["observed"]]))$cramer
+
+k<- NROW(as.matrix(teste_chi[["observed"]]))
+r<- NCOL(as.matrix(teste_chi[["observed"]]))
+n<- NROW(dados_capag_2022)
+
+sqrt(teste_chi$statistic/(n*min(c(k-1,r-1))))
