@@ -108,6 +108,32 @@ names(regic_trabalho)[4:5]<- c("nivel_hierarquia","nome_nivel_hierarquia")
 REGIC2018_Arranjos_Populacionais_v2 <- read_excel("REGIC2018_Arranjos_Populacionais_v2.xlsx")
 
 
+################### DAdos do ranking da qualidade fiscal
+library(tidyverse)
+
+url<- "https://ranking-municipios.tesouro.gov.br/static/data/down_loads/municipios_bspn.zip"
+
+download.file(url, destfile="municipios_bspn.zip", mode = "wb")
+
+unzip("municipios_bspn.zip")
+
+
+
+municipios_bspn <- read_delim("municipios_bspn.csv",
+                              delim = ";", escape_double = FALSE, trim_ws = TRUE)
+
+
+municipios_bspn <- janitor::clean_names(municipios_bspn)
+
+glimpse(municipios_bspn)
+
+
+unique(municipios_bspn$no_icf)
+
+municipios_bspn %>%
+  select(id_ente, nome_ente, va_exercicio,no_icf,pos_ranking) %>%
+  readr::write_csv("dados_analise_ranking_gpt.csv")
+
 ####Exportação
 
 rio::export(mapa_municipios, "mapa_municipios.RDS")
@@ -119,5 +145,7 @@ rio::export(ibge2022,"ibge2022.RDS")
 rio::export(dados_capag_2022,"dados_capag_2022.RDS")
 
 rio::export(regic_trabalho,"regic_trabalho.RDS")
+
+
 
 
