@@ -131,8 +131,19 @@ glimpse(municipios_bspn)
 unique(municipios_bspn$no_icf)
 
 municipios_bspn %>%
-  select(id_ente, nome_ente, va_exercicio,no_icf,pos_ranking) %>%
+  select(id_ente, uf, va_exercicio,  nome_ente, no_icf,pos_ranking) %>%
   readr::write_csv("dados_analise_ranking_gpt.csv")
+
+
+municipios_bspn %>%
+  filter(no_icf %in%  c("C","D","E"),
+         va_exercicio == 2022) %>%
+  summarise(.by= uf,
+            quantidade = n()) %>%
+  arrange(desc(quantidade))
+
+
+
 
 ####Exportação
 

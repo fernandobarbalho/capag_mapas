@@ -444,3 +444,9 @@ r<- NCOL(as.matrix(teste_chi[["observed"]]))
 n<- NROW(dados_capag_2022)
 
 sqrt(teste_chi$statistic/(n*min(c(k-1,r-1))))
+
+
+#####
+# Estatísticas descritivas
+
+names(dados_capag_2022)

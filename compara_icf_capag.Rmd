@@ -1,0 +1,129 @@
+---
+title: "Relações entre Ranking de qualidade de informação e nota CAPAG"
+author: "Fernando Almeida Barbalho"
+date: '2023-10-27'
+output: 
+  html_document:
+    theme: cerulean
+
+---
+
+```{r setup, include=FALSE, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(dplyr)
+library(knitr)
+library(readr)
+library(readxl)
+library(kableExtra)
+library(colorspace)
+
+
+dados_analise_ranking_gpt <- read_csv("dados_analise_ranking_gpt.csv")
+
+
+dados_municipios <- read_excel("dados_municipios.xlsx")
+
+dados_municipios <- janitor::clean_names(dados_municipios)
+
+
+data<- 
+  dados_analise_ranking_gpt %>%
+  filter(va_exercicio==2022) %>%
+  rename(cod_ibge = id_ente) %>%
+  inner_join(dados_municipios)
+
+  
+
+
+
+```
+
+Esse documento apresenta algumas estatísticas iniciais que permitem avaliar o desempenho dos municípios brasileiros quando se compara as notas obtidas no ranking da qualidade fiscal (ICF) com o que é observado na prévia fiscal produzida para fins de avaliação da capacidade de pagamento (CAPAG). Os dados analisados referem-se ao ano de 2022.
+
+
+## Quadros de contagens de ocorrências para combinações das notas de ranking e CAPAG
+
+Começamos a comparação mostrando um quadro com todas as combinações possíveis das duas notas. Para cada combinação mostramos a quantidade de ocorrências
+
+```{r}
+# Counting the occurrences of each combination
+combination_counts <- data %>%
+  group_by(no_icf, nota_oficial) %>%
+  summarise(quantidade = n())
+
+# Print the table
+combination_counts  %>%
+  arrange(no_icf, nota_oficial) %>%
+  kable("html", col.names = c("Nota ICF", "Nota CAPAG", "Quantidade")) %>%
+  
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"),
+                full_width = F, position = "center") %>%
+  column_spec(1, bold = T) %>%
+  add_header_above(c(" " = 1, "Combinações" = 2)) %>%
+  collapse_rows(columns = 1, valign = "middle") %>%
+  add_footnote("Fonte: dados coletados para análise.") %>%
+  kable_paper(full_width = F)
+
+
+```
+
+O quadro acima é interessante para localizar rapidamente uma combinação específica mas não traz uma visão de onde estão as maiores concentrações. Para isso elaboramos o quadro abaixo.
+
+```{r}
+combination_counts  %>%
+  arrange(desc(quantidade)) %>%
+  kable("html", col.names = c("Nota ICF", "Nota CAPAG", "Quantidade")) %>%
+  
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"),
+                full_width = F, position = "center") %>%
+  column_spec(1, bold = T) %>%
+  add_header_above(c(" " = 1, "Combinações" = 2)) %>%
+  collapse_rows(columns = 1, valign = "middle") %>%
+  add_footnote("Fonte: dados coletados para análise.") %>%
+  kable_paper(full_width = F)
+
+```
+
+Pela quadro é fácil observar que os primeiros colocados no ranking estão associados às notas B e C do icf. Isso pode refletir o efeito quantidade das ocorrências desses dois ratings no ICF. É interessante fazer uma análise em que as proporções esperadas pelas quantidades de ocorrência seja avaliadas em comparação com as quantidades efetivamente observadas. Existe técnica estatística para isso, o chamado teste chi-quadrado.
+
+## Teste chi-quadrado e quadro comparativo
+
+```{r}
+modelo<- chisq.test(data$no_icf, data$nota_oficial, simulate.p.value = TRUE)
+
+modelo
+```
+O teste Chi-quadrado é uma ferramenta estatística utilizada para investigar se existe uma relação significativa entre duas variáveis categóricas. No contexto do estudo, foi aplicado para verificar se existe uma ligação entre a 'qualidade da informação' (no_icf) e a 'nota CAPAG' (nota_oficial) nos dados analisados.
+
+O resultado do teste foi um valor de "X-quadrado" de 230.61, o que é uma medida de quão forte é a diferença observada em seus dados em relação ao que seria esperado se não houvesse relação entre as variáveis. O mais importante é o "valor-p" associado, que foi de aproximadamente 0.0005. Em termos simples, o valor-p indica a probabilidade de que quaisquer achados de seu teste ocorreram por acaso. Um valor-p mais baixo, como o que foi obtido, sugere que é muito improvável que os resultados sejam uma coincidência.
+
+Isso significa que, com base na análise, existe uma forte evidência de que a qualidade da informação está relacionada de alguma forma à nota CAPAG. Em outras palavras, as diferenças nas notas CAPAG não são aleatórias e parecem estar associadas às variações na qualidade da informação. Essa descoberta é importante porque sugere que as duas variáveis não operam independentemente uma da outra e que esforços para melhorar uma podem influenciar positivamente a outra.
+
+Os resíduos padronizados são componentes cruciais da análise estatística em um teste de qui-quadrado, pois oferecem insights além dos resultados gerais do teste, mergulhando nas especificidades de como cada categoria contribui para a relação observada entre as variáveis. Mostramos abaixo um quadro com os resíduos padrões significativos para a análise.
+
+
+
+
+Enquanto o valor de qui-quadrado nos informa se há uma relação significativa entre as variáveis estudadas, os resíduos padronizados ajudam a identificar quais categorias específicas dentro das variáveis estão conduzindo essa relação. Eles fazem isso ao destacar quais observações desviam significativamente do que seria esperado se não houvesse relação, ou seja, são os pontos que mais contribuem para o qui-quadrado alto.
+
+Avaliar os resíduos padronizados é especialmente importante porque nos permite detectar padrões ou anomalias específicos que podem estar ocultos dentro do conjunto de dados. Essa análise mais detalhada pode guiar pesquisadores e tomadores de decisão sobre quais áreas necessitam de atenção especial, potencialmente levando a ações mais direcionadas e eficazes. Em suma, enquanto o teste de qui-quadrado nos diz que existe uma história, os resíduos padronizados ajudam a contar essa história em detalhes.
+
+```{r}
+residuo_teste_capag_icf<-
+  as_tibble(modelo[["stdres"]], .name_repair= make.names)
+
+names(residuo_teste_capag_icf) <- c("no_icf","capag_oficial","n")
+
+residuo_teste_capag_icf %>%
+  mutate(rank = rank(-abs(n))) %>%
+  filter(rank<=10) %>%
+  mutate(ordem = as.factor(rank)) %>%
+  mutate(ordem = fct_reorder(ordem, rank, .desc=TRUE) ) %>%
+  ggplot(aes(x=n,y=ordem, fill= capag_oficial))+
+  geom_col() +
+  geom_text(aes(label= no_icf))+
+  geom_vline(xintercept = c(-2,2), color = 'red')
+
+
+```
+
