@@ -14,11 +14,12 @@ library(patchwork)
 library(reshape2)
 library(sf)
 library(spdep)
+library(geobr)
 
 
 mapa_municipios<- rio::import("mapa_municipios.RDS")
 sedes_municipios<- rio::import("sedes_municipios.RDS")
-brasil<- geobr::read_country()
+brasil<- geobr::read_country(showProgress = FALSE)
 estados<- rio::import("estados.RDS")
 brasil<- rio::import("brasil.RDS")
 ibge2022<- rio::import("ibge2022.RDS")

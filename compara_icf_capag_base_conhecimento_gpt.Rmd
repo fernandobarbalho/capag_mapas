@@ -17,6 +17,7 @@ library(readxl)
 library(kableExtra)
 library(colorspace)
 library(tidyverse)
+library(flextable)
 
 
 dados_analise_ranking_gpt <- read_csv("dados_analise_ranking_gpt.csv")
@@ -41,6 +42,69 @@ data<-
 
 Esse documento apresenta algumas estatísticas iniciais que permitem avaliar o desempenho dos municípios brasileiros quando se compara as notas obtidas no ranking da qualidade da informação contábil e fiscal (ICF) com o que é observado na prévia fiscal produzida para fins de avaliação da capacidade de pagamento (CAPAG). Os dados analisados referem-se ao ano de 2022.
 
+## O que é o ranking fiscal
+
+O Ranking da Qualidade da Informação Contábil e Fiscal no Siconfi - Ranking Siconfi - é uma publicação da Secretaria do Tesouro Nacional - STN - cujo objetivo é avaliar a qualidade da informação e a consistência dos relatórios e demonstrativos contábeis e fiscais que o Tesouro Nacional recebe, por meio do Siconfi - Sistema de Informações Contábeis e Fiscais do Setor Público Brasileiro, de todos os entes federativos, ou seja, da União, dos estados e dos municípios brasileiros.
+
+A finalidade dessa publicação é fomentar a melhoria da qualidade e da consistência dos dados fiscais e contábeis enviados pelos entes e que são utilizados tanto pelo Tesouro Nacional quanto pelos diversos usuários dessa informação.
+
+Informações extraídas de (<https://ranking-municipios.tesouro.gov.br/>). Conforme acesso em 23/11/2023
+
+## Metodologia do ranking fiscal
+
+O Ranking da Qualidade da Informação Contábil e Fiscal no Siconfi - Ranking Siconfi - é uma publicação da Secretaria do Tesouro Nacional - STN - cujo objetivo é avaliar a qualidade da informação e a consistência dos relatórios e demonstrativos contábeis e fiscais que o Tesouro Nacional recebe, por meio do Siconfi - Sistema de Informações Contábeis e Fiscais do Setor Público Brasileiro, de todos os entes federativos, ou seja, da União, dos estados e dos municípios brasileiros.
+
+A informação contábil e fiscal é estruturada em forma de relatórios e demonstrativos contábeis e fiscais, de acordo com a legislação pertinente. No Siconfi, os entes encaminha a Declaração de Contas Anuais (DCA), Relatório Resumido de Execução Orçamentária (RREO), Relatório de Gestão Fiscal (RGF) e a Matriz de Saldos Contábeis (MSC). Essas informações são disponibilizadas para acesso público na página do Siconfi. Assim, as informações de todos estados e municípios podem ser acessadas, baixadas e utilizadas para análises, pesquisas acadêmicas etc., tanto pelo Tesouro Nacional quanto pelos diversos usuários dessa informação.
+
+De posse dos dados enviados pelos entes ao Siconfi, o Tesouro Nacional realiza análises para pontuar a qualidade da informação encaminhada. Essas análises são denominadas de Verificações. Desta forma, as Verificações são análises técnicas que retratam o cumprimento da legislação, das instruções e guias de preenchimento do Siconfi, das regras estabelecidas no Manual de Contabilidade Aplicada ao Setor Público - MCASP e no Manual de Demonstrativos Fiscais - MDF.
+
+Para o cálculo do Ranking Siconfi optou-se por uma metodologia de ranqueamento simplificada, utilizando-se do percentual de acertos dos entes nas verificações. Ou seja, quanto maior o percentual de acertos que o ente obtiver, melhor será a sua classificação no Ranking.
+
+Informações extraídas de (<https://ranking-municipios.tesouro.gov.br/>). Conforme acesso em 23/11/2023
+
+## Indicador da Qualidade da Informação Contábil e Fiscal no Siconfi
+
+O Indicador da Qualidade da Informação Contábil e Fiscal no Siconfi (ICF) é uma atribuição de notas para o desempenho dos entes no Ranking Siconfi, conforme o seu desempenho percentual. São 5 níveis que vão da letra Aicf até a letra Eicf, sendo o maior conceito (Aicf) atribuído a entes que tiveram mais do que 95% das informações avaliadas como corretas e o menor (Eicf) àqueles com conformidade abaixo de 65% nos dados avaliados. 
+
+As notas B vão para entes com desempenho superior ou igual a 85% e inferior a 95% do total
+
+As notas C destinam-se a entes com desempenho superior ou igual a 75% e inferior a 85% do total
+
+As notas D vão para entes com desempenho superior ou igual a 65% e inferior a 75% do total
+
+Informações extraídas de (<https://ranking-municipios.tesouro.gov.br/>). Conforme acesso em 23/11/2023
+
+
+## Dimensões da informação
+
+ O Ranking da qualidade da informação é dividido em dimensões de avaliação. Cada uma dessas dimensões reúne um conjunto de verificações que tem o mesmo objetivo ou que sejam relacionadas às mesmas informações.
+
+Existem quatro dimensões de avaliação: 
+
+
+Dimensão I - Gestão da Informação
+
+Reúne as verificações que analisam o comportamento do ente federativo no envio e manutenção das informações no Siconfi. Ex.: envio de todas as declarações, envios no prazo, quantidade de retificações, estrutura das matrizes de saldos contábeis entre outras.
+
+Para essa dimensão, são analisadas todas as declarações e matrizes de saldos contábeis enviadas pelos entes.
+Dimensão II - Informações Contábeis
+
+Compreende as verificações que avaliam os dados contábeis recebidos em relação à adequação às regras do Manual de Contabilidade Aplicada ao Setor Público - MCASP, consistência entre os demonstrativos etc.
+
+Os dados analisados são os que foram homologados por meio da Declaração de Contas Anuais (DCA) e enviados por meio da MSC de encerramento.
+Dimensão III - Informações Fiscais
+
+Agrupa as verificações pertinentes à análise dos dados fiscais contidos nas declarações. Ex.: adequação às disposições do Manual de Demonstrativos Fiscais - MDF, consistência entre demonstrativos, entre outras.
+
+São analisados os dados do Relatório Resumido da Execução Orçamentária (RREO) do 6º Bimestre e do Relatório de Gestão Fiscal (RGF) do 3º quadrimestre ou 2º semestre de todos os poderes/órgãos.
+Dimensão IV - Informações Contábeis x Informações Fiscais
+
+Efetua o cruzamento entre os dados contábeis e fiscais avaliando a igualdade de valores entre demonstrativos diferentes.
+
+São analisados os dados da Declaração de Contas Anuais (DCA), do Relatório Resumido de Execução Orçamentária (RREO) do 6º Bimestre, do Relatório de Gestão Fiscal (RGF) do 3º quadrimestre ou 2º semestre de todos os poderes/órgãos e a Matriz de Saldos Contábeis de dezembro.
+
+Informações extraídas de (<https://ranking-municipios.tesouro.gov.br/>). Conforme acesso em 23/11/2023
+
 
 ## Quadros de contagens de ocorrências para combinações das notas de ranking e CAPAG
 
@@ -52,18 +116,28 @@ combination_counts <- data %>%
   group_by(no_icf, nota_oficial) %>%
   summarise(quantidade = n())
 
+
 # Print the table
+tabela_valores<-
 combination_counts  %>%
-  arrange(no_icf, nota_oficial) %>%
-  kable("html", col.names = c("Nota ICF", "Nota CAPAG", "Quantidade")) %>%
-  
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"),
-                full_width = F, position = "center") %>%
-  column_spec(1, bold = T) %>%
-  add_header_above(c(" " = 1, "Combinações" = 2)) %>%
-  collapse_rows(columns = 1, valign = "middle") %>%
-  add_footnote("Fonte: dados coletados para análise.") %>%
-  kable_paper(full_width = F)
+  arrange(no_icf, nota_oficial) 
+
+
+# Criação do objeto flextable
+flex_tab <- flextable(tabela_valores[, c("no_icf", "nota_oficial", "quantidade")])
+
+# Customização do estilo da tabela
+flex_tab <- flex_tab %>%
+  set_header_labels(
+    no_icf = "Nota ICF",
+    nota_oficial = "Nota Capag",
+    quantidade = "Quantidade de combinações"
+  ) %>%
+  align(align = "right", part = "all") %>%
+  autofit()
+
+
+flex_tab
 
 
 ```
@@ -71,17 +145,26 @@ combination_counts  %>%
 O quadro acima é interessante para localizar rapidamente uma combinação específica mas não traz uma visão de onde estão as maiores concentrações. Para isso elaboramos o quadro abaixo.
 
 ```{r}
+
+tabela_valores<-
 combination_counts  %>%
-  arrange(desc(quantidade)) %>%
-  kable("html", col.names = c("Nota ICF", "Nota CAPAG", "Quantidade")) %>%
-  
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"),
-                full_width = F, position = "center") %>%
-  column_spec(1, bold = T) %>%
-  add_header_above(c(" " = 1, "Combinações" = 2)) %>%
-  collapse_rows(columns = 1, valign = "middle") %>%
-  add_footnote("Fonte: dados coletados para análise.") %>%
-  kable_paper(full_width = F)
+  arrange(desc(quantidade)) 
+
+
+flex_tab <- flextable(tabela_valores[, c("no_icf", "nota_oficial", "quantidade")])
+
+# Customização do estilo da tabela
+flex_tab <- flex_tab %>%
+  set_header_labels(
+    no_icf = "Nota ICF",
+    nota_oficial = "Nota Capag",
+    quantidade = "Quantidade de combinações"
+  ) %>%
+  align(align = "right", part = "all") %>%
+  autofit()
+
+
+flex_tab
 
 ```
 
@@ -94,6 +177,7 @@ modelo<- chisq.test(data$no_icf, data$nota_oficial, simulate.p.value = TRUE)
 
 modelo
 ```
+
 O teste Chi-quadrado é uma ferramenta estatística utilizada para investigar se existe uma relação significativa entre duas variáveis categóricas. No contexto do estudo, foi aplicado para verificar se existe uma ligação entre a 'qualidade da informação' (no_icf) e a 'nota CAPAG' (nota_oficial) nos dados analisados.
 
 O resultado do teste foi um valor de "X-quadrado" de 230.61, o que é uma medida de quão forte é a diferença observada em seus dados em relação ao que seria esperado se não houvesse relação entre as variáveis. O mais importante é o "valor-p" associado, que foi de aproximadamente 0.0005. Em termos simples, o valor-p indica a probabilidade de que quaisquer achados de seu teste ocorreram por acaso. Um valor-p mais baixo, como o que foi obtido, sugere que é muito improvável que os resultados sejam uma coincidência.
@@ -101,8 +185,6 @@ O resultado do teste foi um valor de "X-quadrado" de 230.61, o que é uma medida
 Isso significa que, com base na análise, existe uma forte evidência de que a qualidade da informação está relacionada de alguma forma à nota CAPAG. Em outras palavras, as diferenças nas notas CAPAG não são aleatórias e parecem estar associadas às variações na qualidade da informação. Essa descoberta é importante porque sugere que as duas variáveis não operam independentemente uma da outra e que esforços para melhorar uma podem influenciar positivamente a outra.
 
 Os resíduos padronizados são componentes cruciais da análise estatística em um teste de qui-quadrado, pois oferecem insights além dos resultados gerais do teste, mergulhando nas especificidades de como cada categoria contribui para a relação observada entre as variáveis. Mostramos abaixo um quadro com os resíduos padrões significativos para a análise.
-
-
 
 Enquanto o valor de qui-quadrado nos informa se há uma relação significativa entre as variáveis estudadas, os resíduos padronizados ajudam a identificar quais categorias específicas dentro das variáveis estão conduzindo essa relação. Eles fazem isso ao destacar quais observações desviam significativamente do que seria esperado se não houvesse relação, ou seja, são os pontos que mais contribuem para o qui-quadrado alto.
 
@@ -147,4 +229,4 @@ Uma observação crucial é a relação notável entre os municípios com notas 
 
 A análise dos resíduos relevantes do teste qui-quadrado reforça nossas previsões sobre as relações entre o ICF e a CAPAG. Há uma tendência encorajadora: boas avaliações no ICF geralmente coincidem com classificações positivas na CAPAG. Da mesma forma, essas notas altas no ICF são frequentemente incompatíveis com a ausência de classificação ou com classificações baixas na CAPAG. Este padrão é espelhado inversamente com notas baixas no ICF, que correspondem a classificações desfavoráveis ou à falta de classificações na CAPAG, e raramente coincidem com avaliações positivas.
 
-Em resumo, o gráfico não apenas valida nossas expectativas, mas narra uma história coerente e lógica: a qualidade das informações (ICF) e a capacidade de pagamento (CAPAG) estão interligadas, influenciando-se mutuamente de maneira previsível. Este insight é instrumental para orientar esforços futuros e políticas, sublinhando a importância de manter a integridade das informações e a saúde financeira nos municípios. 
+Em resumo, o gráfico não apenas valida nossas expectativas, mas narra uma história coerente e lógica: a qualidade das informações (ICF) e a capacidade de pagamento (CAPAG) estão interligadas, influenciando-se mutuamente de maneira previsível. Este insight é instrumental para orientar esforços futuros e políticas, sublinhando a importância de manter a integridade das informações e a saúde financeira nos municípios.
